@@ -6,4 +6,24 @@ package xiaofei.library.zlang;
 
 class Code {
 
+    private Fct fct;
+
+    private Object operand;
+
+    Code(Fct fct, Object operand) {
+        this.fct = fct;
+        this.operand = operand;
+    }
+
+    Fct getOpr() {
+        return fct;
+    }
+
+    Object getOperand() {
+        return operand;
+    }
+
+    void setOperand(Object operand) {
+        this.operand = operand;
+    }
 }
