@@ -22,6 +22,7 @@ public class Compiler {
 
     private static final Set<String> RESERVED_WORDS = new HashSet<String>() {
         {
+            add("END");
             add("while");
         }
     };
@@ -179,10 +180,10 @@ public class Compiler {
     }
 
     private void factor() {
-        if (nextSymbol.compareTo("id") == 0) {
+        if (nextSymbol.equals("id")) {
             String id = (String) nextObject;
             moveToNextSymbol();
-            if (nextSymbol.compareTo("(") == 0) {
+            if (nextSymbol.equals("(")) {
 
             } else {
                 Integer addr = symbolTable.get(id);
@@ -192,18 +193,18 @@ public class Compiler {
                 generateCode(Fct.LOD, addr);
                 moveToNextSymbol();
             }
-        } else if (nextSymbol.compareTo("num") == 0) {
+        } else if (nextSymbol.equals("num")) {
             generateCode(Fct.LIT, nextObject);
             moveToNextSymbol();
-        } else if (nextSymbol.compareTo("(") == 0) {
+        } else if (nextSymbol.equals("(")) {
             moveToNextSymbol();
             expression();
-            if (nextSymbol.compareTo(")") == 0) {
+            if (nextSymbol.equals(")")) {
                 moveToNextSymbol();
             } else {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')'");
             }
-        } else if (nextSymbol.compareTo("!")==0) {
+        } else if (nextSymbol.equals("!")) {
             moveToNextSymbol();
             factor();
             generateCode(Fct.OPR, Opr.NOT);
@@ -214,44 +215,40 @@ public class Compiler {
 
     private void term() {
         factor();
-        while (nextSymbol.compareTo("*") == 0
-                || nextSymbol.compareTo("/") == 0
-                || nextSymbol.compareTo("&&") == 0) {
+        while (nextSymbol.equals("*") || nextSymbol.equals("/") || nextSymbol.equals("&&")) {
             String op = nextSymbol;
             moveToNextSymbol();
             factor();
-            if (op.compareTo("*") == 0) {
+            if (op.equals("*")) {
                 generateCode(Fct.OPR, Opr.TIMES);
-            } else if (op.compareTo("/") == 0) {
+            } else if (op.equals("/")) {
                 generateCode(Fct.OPR, Opr.DIVIDE);
-            } else if (op.compareTo("&&") == 0) {
+            } else if (op.equals("&&")) {
                 generateCode(Fct.OPR, Opr.AND);
             }
         }
     }
 
     private void simpleExpression() {
-        if (nextSymbol.compareTo("+") == 0 || nextSymbol.compareTo("-") == 0) {
+        if (nextSymbol.equals("+") || nextSymbol.equals("-")) {
             String op = nextSymbol;
             moveToNextSymbol();
             term();
-            if (op.compareTo("-") == 0) {
+            if (op.equals("-")) {
                 generateCode(Fct.OPR, Opr.NEGATIVE);
             }
         } else {
             term();
         }
-        while (nextSymbol.compareTo("+") == 0
-                || nextSymbol.compareTo("-") == 0
-                || nextSymbol.compareTo("||") == 0) {
+        while (nextSymbol.equals("+") || nextSymbol.equals("-") || nextSymbol.equals("||")) {
             String op =nextSymbol;
             moveToNextSymbol();
             term();
-            if (op.compareTo("+") == 0) {
+            if (op.equals("+")) {
                 generateCode(Fct.OPR, Opr.PLUS);
-            } else if (op.compareTo("-") == 0) {
+            } else if (op.equals("-")) {
                 generateCode(Fct.OPR, Opr.MINUS);
-            } else if (op.compareTo("||") == 0) {
+            } else if (op.equals("||")) {
                 generateCode(Fct.OPR, Opr.OR);
             }
         }
@@ -259,36 +256,32 @@ public class Compiler {
 
     private void expression() {
         simpleExpression();
-        if (nextSymbol.compareTo("==") == 0
-                || nextSymbol.compareTo("!=") == 0
-                || nextSymbol.compareTo("<") == 0
-                || nextSymbol.compareTo(">") == 0
-                || nextSymbol.compareTo("<=") == 0
-                || nextSymbol.compareTo(">=") == 0) {
+        if (nextSymbol.equals("==") || nextSymbol.equals("!=") || nextSymbol.equals("<")
+                || nextSymbol.equals(">") || nextSymbol.equals("<=") || nextSymbol.equals(">=")) {
             String op = nextSymbol;
             moveToNextSymbol();
             simpleExpression();
-            if (op.compareTo("==") == 0) {
+            if (op.equals("==")) {
                 generateCode(Fct.OPR, Opr.EQUAL);
-            } else if (op.compareTo("!=") == 0) {
+            } else if (op.equals("!=")) {
                 generateCode(Fct.OPR, Opr.NOT_EQUAL);
-            } else if (op.compareTo("<") == 0) {
+            } else if (op.equals("<")) {
                 generateCode(Fct.OPR, Opr.LESS);
-            } else if (op.compareTo("<=") == 0) {
+            } else if (op.equals("<=")) {
                 generateCode(Fct.OPR, Opr.LESS_EQUAL);
-            } else if (op.compareTo(">") == 0) {
+            } else if (op.equals(">")) {
                 generateCode(Fct.OPR, Opr.GREATER);
-            } else if (op.compareTo(">=") == 0) {
+            } else if (op.equals(">=")) {
                 generateCode(Fct.OPR, Opr.GREATER_EQUAL);
             }
         }
     }
 
-    private void statement(boolean InLoop) {
+    private void statement(boolean inLoop) {
         //; and {} is right.
-        if (nextSymbol.compareTo(";") == 0) {
+        if (nextSymbol.equals(";")) {
             moveToNextSymbol();
-        } else if (nextSymbol.compareTo("id") == 0) {
+        } else if (nextSymbol.equals("id")) {
             String id = (String) nextObject;
             Integer addr = symbolTable.get(id);
             if (addr == null) {
@@ -296,55 +289,55 @@ public class Compiler {
                 symbolTable.put(id, addr);
             }
             moveToNextSymbol();
-            if (nextSymbol.compareTo("=") == 0) {
+            if (nextSymbol.equals("=")) {
                 moveToNextSymbol();
                 expression();
                 generateCode(Fct.STO, addr);
             } else {
                 throw new CompilerException(CompilerError.ASSIGN_ERROR);
             }
-            if (nextSymbol.compareTo(";") != 0) {
+            if (!nextSymbol.equals(";")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
             moveToNextSymbol();
-        } else if (nextSymbol.compareTo("if") == 0) {
+        } else if (nextSymbol.equals("if")) {
             moveToNextSymbol();
-            if (nextSymbol.compareTo("(") != 0) {
+            if (!nextSymbol.equals("(")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "'('");
             }
             moveToNextSymbol();
             expression();
-            if (nextSymbol.compareTo(")") != 0) {
+            if (!nextSymbol.equals(")")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')'");
             }
             moveToNextSymbol();
             generateCode(Fct.JPC, 0);
             int tmp = codeIndex;
-            statement(InLoop);
+            statement(inLoop);
             modifyCodeOperand(tmp, codeIndex + 1);
-            if (nextSymbol.compareTo("else") == 0) {
+            if (nextSymbol.equals("else")) {
                 modifyCodeOperand(tmp, codeIndex + 2);
                 generateCode(Fct.JMP, 0);
                 tmp = codeIndex;
                 moveToNextSymbol();
-                statement(InLoop);
+                statement(inLoop);
                 modifyCodeOperand(tmp, codeIndex + 1);
             }
-        }else if (nextSymbol.compareTo("{") == 0) {
+        } else if (nextSymbol.equals("{")) {
             moveToNextSymbol();
-            statement(InLoop);
-            if (nextSymbol.compareTo("}") != 0) {
+            statement(inLoop);
+            if (!nextSymbol.equals("}")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "'}'");
             }
             moveToNextSymbol();
-        } else if (nextSymbol.compareTo("while") == 0) {
+        } else if (nextSymbol.equals("while")) {
             int tmp1 = codeIndex;
-            if (nextSymbol.compareTo("(") != 0) {
+            if (!nextSymbol.equals("(")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "'('");
             }
             moveToNextSymbol();
             expression();
-            if (nextSymbol.compareTo(")") != 0) {
+            if (!nextSymbol.equals(")")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')'");
             }
             moveToNextSymbol();
@@ -359,20 +352,20 @@ public class Compiler {
 //                BreakCheater.deleteCurrentLabel();
 //                ContinueCheater.modifyContinueCmd(cx1);
 //                ContinueCheater.deleteCurrentLabel();
-        } else if (nextSymbol.compareTo("break") == 0) {
-            if (!InLoop) {
+        } else if (nextSymbol.equals("break")) {
+            if (!inLoop) {
                 throw new CompilerException(CompilerError.BREAK_ERROR);
             }
             generateCode(Fct.JMP, 0);
 //                BreakCheater.addBreakCmd(cx);
             moveToNextSymbol();
-            if (nextSymbol.compareTo(";") != 0) {
+            if (!nextSymbol.equals(";")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
             moveToNextSymbol();
-        } else if (nextSymbol.compareTo("for") == 0) {//for j=a to b step c
+        } else if (nextSymbol.equals("for")) {//for j=a to b step c
             moveToNextSymbol();
-            if (nextSymbol.compareTo("id") != 0) {
+            if (!nextSymbol.equals("id")) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "ID");
             }
             String id = (String) nextObject;
@@ -381,14 +374,14 @@ public class Compiler {
                 symbolTable.put(id, addr = ++offset);
             }
             moveToNextSymbol();
-            if (nextSymbol.compareTo("=") != 0) {
+            if (!nextSymbol.equals("=")) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "=");
             }
             moveToNextSymbol();
             simpleExpression();
             generateCode(Fct.STO, addr);
             int tmp1 = codeIndex + 1;
-            if (nextSymbol.compareTo("to") != 0) {
+            if (!nextSymbol.equals("to")) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "to");
             }
             moveToNextSymbol();
@@ -400,7 +393,7 @@ public class Compiler {
             generateCode(Fct.JMP, 0);
             int tmp3 = codeIndex;
             int tmp4 = codeIndex + 1;
-            if (nextSymbol.compareTo("step") != 0) {
+            if (!nextSymbol.equals("step")) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "step");
             }
             moveToNextSymbol();
@@ -420,25 +413,28 @@ public class Compiler {
 //                BreakCheater.deleteCurrentLabel();
 //                ContinueCheater.modifyContinueCmd(cx5);
 //                ContinueCheater.deleteCurrentLabel();
-        } else if (nextSymbol.compareTo("continue") == 0) {
-            if (!InLoop) {
+        } else if (nextSymbol.equals("continue")) {
+            if (!inLoop) {
                 throw new CompilerException(CompilerError.CONTINUE_ERROR);
             }
             generateCode(Fct.JMP, 0);
 //                ContinueCheater.addContinueCmd(cx);
             moveToNextSymbol();
-            if (nextSymbol.compareTo(";") != 0) {
+            if (!nextSymbol.equals(";")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
             moveToNextSymbol();
-        } else if (nextSymbol.compareTo("return") == 0) {
+        } else if (nextSymbol.equals("return")) {
             moveToNextSymbol();
             simpleExpression();
             generateCode(Fct.FUN_RETURN, 0);
-            if (nextSymbol.compareTo(";") != 0) {
+            if (!nextSymbol.equals(";")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
             moveToNextSymbol();
+        }
+        if (!nextSymbol.equals("END")) {
+            statement(inLoop);
         }
     }
 
@@ -453,11 +449,11 @@ public class Compiler {
 //            BreakCheater.init();
 //            ContinueCheater.init();
         moveToNextSymbol();
-        if (nextSymbol.compareTo("function") != 0) {
+        if (!nextSymbol.equals("function")) {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "function");
         }
         moveToNextSymbol();
-        if (nextSymbol.compareTo("id")==0) {
+        if (nextSymbol.equals("id")) {
             moveToNextSymbol();
         } else {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "ID");
@@ -465,13 +461,13 @@ public class Compiler {
         String functionName = (String) nextObject;
         int para=0;
         offset = -1;
-        if (nextSymbol.compareTo("(") == 0) {
+        if (nextSymbol.equals("(")) {
             moveToNextSymbol();
         } else {
             throw new CompilerException(CompilerError.MISSING_SYMBOL, "'('");
         }
-        while (nextSymbol.compareTo(")") !=0 ) {
-            if (nextSymbol.compareTo("id") != 0) {
+        while (!nextSymbol.equals(")")) {
+            if (!nextSymbol.equals("id")) {
                 throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "para");
             }
             String id = (String) nextObject;
@@ -479,16 +475,16 @@ public class Compiler {
             ++offset;
             symbolTable.put(id, offset);
             moveToNextSymbol();
-            if (nextSymbol.compareTo(")") != 0 && nextSymbol.compareTo(",") != 0) {
+            if (!nextSymbol.equals(")") && !nextSymbol.equals(",")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')' or ','");
             }
-            if (nextSymbol.compareTo(",") == 0) {
+            if (nextSymbol.equals(",")) {
                 moveToNextSymbol();
             }
         }
         moveToNextSymbol();
         generateCode(Fct.INT, offset + 1);//????????????????????要不要加1
-//            if (!Functions.setAfterCheck(FunctionName,para,cx))
+//        if (!Functions.setAfterCheck(FunctionName,para,cx))
 //                throw new CompilerException(CompilerError.ParameterNumberWrong,FunctionName);
         statement(false);
         generateCode(Fct.VOID_RETURN, 0);//This is different from funReturn  here when meet this, is a error.
@@ -499,3 +495,4 @@ public class Compiler {
     }
 
 }
+// TODO override and end
