@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class Compiler {
 
-    private static final Set<Character> SPACE_CHAR = new HashSet<Character>() {
+    private static final Set<Character> SPACE_CHARS = new HashSet<Character>() {
         {
             add(' ');
             add('\t');
@@ -23,7 +23,26 @@ public class Compiler {
     private static final Set<String> RESERVED_WORDS = new HashSet<String>() {
         {
             add("END");
+            add("if");
+            add("else");
             add("while");
+            add("for");
+            add("to");
+            add("step");
+            add("break");
+            add("continue");
+            add("return");
+        }
+    };
+
+    private static final Set<String> LEADING_WORDS = new HashSet<String>() {
+        {
+            add("if");
+            add("while");
+            add("for");
+            add("break");
+            add("continue");
+            add("return");
         }
     };
 
@@ -67,22 +86,22 @@ public class Compiler {
     }
 
     private void moveToNextSymbol() {
-        while (SPACE_CHAR.contains(nextChar)) {
+        while (SPACE_CHARS.contains(nextChar)) {
             moveToNextChar();
         }
-//        while (nextChar == '/' &&input.charAt(pos+1)=='*') {
-//                getch();getch();
-//                char ch1;
-//                do
-//                {
-//                    ch1=ch;
-//                    getch();
-//                }while (!(ch1=='*'&&ch=='/'));
-//                getch();
-//                while (ch==' '||ch=='\t'||ch=='\n')
-//                    getch();
-//            }
-//        }
+        while (nextChar == '/' && program.charAt(pos + 1) == '*') {
+            moveToNextChar();
+            moveToNextChar();
+            char tmp;
+            do {
+                tmp = nextChar;
+                moveToNextChar();
+            } while (tmp != '*' || nextChar != '/');
+            moveToNextChar();
+            while (SPACE_CHARS.contains(nextChar)) {
+                moveToNextChar();
+            }
+        }
         if (isAlpha(nextChar)) {
             String id = "";
             do {
@@ -162,6 +181,22 @@ public class Compiler {
                 moveToNextChar();
             } else {
                 throw new CompilerException(CompilerError.WRONG_SYMBOL, "|");
+            }
+        } else if (nextChar == '/') {
+            moveToNextChar();
+            if (nextChar == '*') {
+                nextSymbol = "/*";
+                moveToNextChar();
+            } else {
+                nextSymbol = "/";
+            }
+        } else if (nextChar == '*') {
+            moveToNextChar();
+            if (nextChar == '/') {
+                nextSymbol = "*/";
+                moveToNextChar();
+            } else {
+                nextSymbol = "*";
             }
         } else {
             nextSymbol = Character.toString(nextChar);
@@ -326,6 +361,17 @@ public class Compiler {
         } else if (nextSymbol.equals("{")) {
             moveToNextSymbol();
             statement(inLoop);
+            while (nextSymbol.equals("{") || LEADING_WORDS.contains(nextSymbol)|| nextSymbol.equals("id")) {
+                String tmp = nextSymbol;
+                statement(inLoop);
+                if (tmp.equals("{")) {
+                    if (nextSymbol.equals("}")) {
+                        moveToNextSymbol();
+                    } else {
+                        throw new CompilerException(CompilerError.MISSING_SYMBOL, "}");
+                    }
+                }
+            }
             if (!nextSymbol.equals("}")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "'}'");
             }
@@ -433,9 +479,6 @@ public class Compiler {
             }
             moveToNextSymbol();
         }
-        if (!nextSymbol.equals("END")) {
-            statement(inLoop);
-        }
     }
 
     private void function() {
@@ -495,4 +538,4 @@ public class Compiler {
     }
 
 }
-// TODO override and end
+// TODO override
