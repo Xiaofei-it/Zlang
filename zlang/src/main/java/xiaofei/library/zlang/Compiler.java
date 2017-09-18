@@ -48,13 +48,17 @@ public class Compiler {
 
     private int pos;
 
-    private char nextChar;
+    private char nextChar; // After read, this points to the next char to read.
 
-    private String nextSymbol;
+    private String nextSymbol; // After read, this points to the next symbol to read.
 
     private Object nextObject;
 
     private int offset;
+
+    private LabelRecorder continueRecorder;
+
+    private LabelRecorder breakRecorder;
 
     private Map<String, Integer> symbolTable = new HashMap<>();
 
@@ -62,11 +66,13 @@ public class Compiler {
 
     private ArrayList<Code> codes = new ArrayList<>();
 
-    private int codeIndex;
+    private int codeIndex; // The last code index
 
     public Compiler(String program) {
         this.program = program;
         pos = -1;
+        continueRecorder = new LabelRecorder();
+        breakRecorder = new LabelRecorder();
     }
 
     private static boolean isAlpha(char ch) {
@@ -182,26 +188,10 @@ public class Compiler {
             } else {
                 throw new CompilerException(CompilerError.WRONG_SYMBOL, "|");
             }
-        } else if (nextChar == '/') {
-            moveToNextChar();
-            if (nextChar == '*') {
-                nextSymbol = "/*";
-                moveToNextChar();
-            } else {
-                nextSymbol = "/";
-            }
-        } else if (nextChar == '*') {
-            moveToNextChar();
-            if (nextChar == '/') {
-                nextSymbol = "*/";
-                moveToNextChar();
-            } else {
-                nextSymbol = "*";
-            }
         } else {
+            // , (  )
             nextSymbol = Character.toString(nextChar);
             moveToNextChar();
-            //, ) (
         }
     }
 
@@ -219,7 +209,7 @@ public class Compiler {
             String id = (String) nextObject;
             moveToNextSymbol();
             if (nextSymbol.equals("(")) {
-
+                // TODO
             } else {
                 Integer addr = symbolTable.get(id);
                 if (addr == null) {
@@ -320,8 +310,8 @@ public class Compiler {
             String id = (String) nextObject;
             Integer addr = symbolTable.get(id);
             if (addr == null) {
-                addr = ++offset;
-                symbolTable.put(id, addr);
+                symbolTable.put(id, addr = ++offset);
+                // TODO modify the operand
             }
             moveToNextSymbol();
             if (nextSymbol.equals("=")) {
@@ -346,7 +336,7 @@ public class Compiler {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')'");
             }
             moveToNextSymbol();
-            generateCode(Fct.JPC, 0);
+            generateCode(Fct.JPC, 0); // if false then jump.
             int tmp = codeIndex;
             statement(inLoop);
             modifyCodeOperand(tmp, codeIndex + 1);
@@ -361,7 +351,7 @@ public class Compiler {
         } else if (nextSymbol.equals("{")) {
             moveToNextSymbol();
             statement(inLoop);
-            while (nextSymbol.equals("{") || LEADING_WORDS.contains(nextSymbol)|| nextSymbol.equals("id")) {
+            while (nextSymbol.equals("{") || LEADING_WORDS.contains(nextSymbol) || nextSymbol.equals("id")) {
                 String tmp = nextSymbol;
                 statement(inLoop);
                 if (tmp.equals("{")) {
@@ -389,21 +379,21 @@ public class Compiler {
             moveToNextSymbol();
             generateCode(Fct.JPC, 0); //false then jump
             int tmp2 = codeIndex;
-//                BreakCheater.createNewLabel();
-//                ContinueCheater.createNewLabel();
+            breakRecorder.createNewLabel();
+            continueRecorder.createNewLabel();
             statement(true);
             generateCode(Fct.JMP, tmp1);
             modifyCodeOperand(tmp2, codeIndex + 1);
-//                BreakCheater.modifyBreakCmd(cx+1);
-//                BreakCheater.deleteCurrentLabel();
-//                ContinueCheater.modifyContinueCmd(cx1);
-//                ContinueCheater.deleteCurrentLabel();
+            breakRecorder.modifyCode(codeIndex + 1);
+            breakRecorder.deleteCurrentLabel();
+            continueRecorder.modifyCode(tmp1);
+            continueRecorder.deleteCurrentLabel();
         } else if (nextSymbol.equals("break")) {
             if (!inLoop) {
                 throw new CompilerException(CompilerError.BREAK_ERROR);
             }
             generateCode(Fct.JMP, 0);
-//                BreakCheater.addBreakCmd(cx);
+            breakRecorder.addCode(codeIndex);
             moveToNextSymbol();
             if (!nextSymbol.equals(";")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
@@ -449,22 +439,22 @@ public class Compiler {
             generateCode(Fct.STO, addr);
             generateCode(Fct.JMP, tmp1);
             modifyCodeOperand(tmp3, codeIndex + 1);
-//                BreakCheater.createNewLabel();
-//                ContinueCheater.createNewLabel();
+            // TODO check
+            breakRecorder.createNewLabel();
+            continueRecorder.createNewLabel();
             statement(true);
             generateCode(Fct.JMP, tmp4);
-            //Code.code[cx1].aInteger=cx+1;
             modifyCodeOperand(tmp2, codeIndex + 1);
-//                BreakCheater.modifyBreakCmd(cx+1);
-//                BreakCheater.deleteCurrentLabel();
-//                ContinueCheater.modifyContinueCmd(cx5);
-//                ContinueCheater.deleteCurrentLabel();
+            breakRecorder.modifyCode(codeIndex + 1);
+            breakRecorder.deleteCurrentLabel();
+            continueRecorder.modifyCode(tmp4);
+            continueRecorder.deleteCurrentLabel();
         } else if (nextSymbol.equals("continue")) {
             if (!inLoop) {
                 throw new CompilerException(CompilerError.CONTINUE_ERROR);
             }
             generateCode(Fct.JMP, 0);
-//                ContinueCheater.addContinueCmd(cx);
+            continueRecorder.addCode(codeIndex);
             moveToNextSymbol();
             if (!nextSymbol.equals(";")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
@@ -472,8 +462,12 @@ public class Compiler {
             moveToNextSymbol();
         } else if (nextSymbol.equals("return")) {
             moveToNextSymbol();
-            simpleExpression();
-            generateCode(Fct.FUN_RETURN, 0);
+            if (!nextSymbol.equals(";")) {
+                simpleExpression();
+                generateCode(Fct.FUN_RETURN, 0);
+            } else {
+                generateCode(Fct.VOID_RETURN, 0);
+            }
             if (!nextSymbol.equals(";")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
@@ -489,8 +483,8 @@ public class Compiler {
 		 */
         nextChar = ' ';
         pos=-1;
-//            BreakCheater.init();
-//            ContinueCheater.init();
+        breakRecorder.init();
+        continueRecorder.init();
         moveToNextSymbol();
         if (!nextSymbol.equals("function")) {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "function");
@@ -537,5 +531,36 @@ public class Compiler {
 
     }
 
+    private class LabelRecorder {
+        private HashMap<Integer, HashSet<Integer>> labels;
+        private int currentLabel;
+        void init() {
+            currentLabel = 0;
+            labels = new HashMap<Integer,HashSet<Integer>>();
+        }
+
+        void addCode(int cx) {
+            labels.get(currentLabel).add(cx);
+        }
+
+        void createNewLabel() {
+            ++currentLabel;
+            labels.put(currentLabel, new HashSet<Integer>());
+        }
+
+        void modifyCode(int cx) {
+            HashSet<Integer> cxs = labels.get(currentLabel);
+//            if (s==null)
+//                return;
+            for (int c :cxs) {
+                codes.get(c).setOperand(cx);
+            }
+        }
+
+        void deleteCurrentLabel() {
+            labels.remove(currentLabel);
+            --currentLabel;
+        }
+    }
 }
 // TODO override
