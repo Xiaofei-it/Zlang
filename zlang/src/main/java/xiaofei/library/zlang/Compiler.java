@@ -3,6 +3,8 @@ package xiaofei.library.zlang;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,6 +47,10 @@ public class Compiler {
             add("return");
         }
     };
+
+    private static final CodeStorage CODE_STORAGE = CodeStorage.getInstance();
+
+    private static final FunctionStorage FUNCTION_STORAGE = FunctionStorage.getInstance();
 
     private int pos;
 
@@ -496,7 +502,7 @@ public class Compiler {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "ID");
         }
         String functionName = (String) nextObject;
-        int para=0;
+        int paraNumber = 0;
         offset = -1;
         if (nextSymbol.equals("(")) {
             moveToNextSymbol();
@@ -508,7 +514,7 @@ public class Compiler {
                 throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "para");
             }
             String id = (String) nextObject;
-            ++para;
+            ++paraNumber;
             ++offset;
             symbolTable.put(id, offset);
             moveToNextSymbol();
@@ -525,12 +531,46 @@ public class Compiler {
 //                throw new CompilerException(CompilerError.ParameterNumberWrong,FunctionName);
         statement(false);
         generateCode(Fct.VOID_RETURN, 0);//This is different from funReturn  here when meet this, is a error.
+        CODE_STORAGE.put(functionName, paraNumber, codes);
     }
 
-    public void compile(String program) {
-
+    private void requestFunction(String functionName, int paraNumber) {
+        if (CODE_STORAGE.get(functionName, paraNumber) == null) {
+            mNeededFunction.add(new FunctionWrapper(functionName, paraNumber));
+        }
     }
 
+    public void compile(String function) {
+        this.program = function;
+        do {
+            function();
+            Iterator<FunctionWrapper> iterator = mNeededFunction.iterator();
+            while (iterator.hasNext()) {
+                FunctionWrapper functionWrapper = iterator.next();
+                if (CODE_STORAGE.get(functionWrapper.functionName, functionWrapper.paraNumber) != null) {
+                    iterator.remove();
+                } else {
+                    this.program = FUNCTION_STORAGE.get(functionWrapper.functionName, functionWrapper.paraNumber);
+                    if (this.program == null) {
+                        //TODO
+                    } else {
+                        break;
+                    }
+                }
+            }
+        } while (!mNeededFunction.isEmpty());
+    }
+
+    private LinkedList<FunctionWrapper> mNeededFunction = new LinkedList<>();
+
+    private static class FunctionWrapper {
+        final String functionName;
+        final int paraNumber;
+        FunctionWrapper(String functionName, int paraNumber) {
+            this.functionName = functionName;
+            this.paraNumber = paraNumber;
+        }
+    }
     private class LabelRecorder {
         private HashMap<Integer, HashSet<Integer>> labels;
         private int currentLabel;

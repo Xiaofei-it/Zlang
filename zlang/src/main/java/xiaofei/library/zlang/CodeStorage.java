@@ -13,7 +13,7 @@ class CodeStorage {
 
     private static CodeStorage instance = null;
 
-    private HashMap<String, ArrayList<Code>> codeMap;
+    private HashMap<String, HashMap<Integer, ArrayList<Code>>> codeMap;
 
     private CodeStorage() {
         codeMap = new HashMap<>();
@@ -26,11 +26,20 @@ class CodeStorage {
         return instance;
     }
 
-    void put(String funName, ArrayList<Code> codes) {
-        codeMap.put(funName, codes);
+    void put(String funName, int paraNumber, ArrayList<Code> codes) {
+        HashMap<Integer, ArrayList<Code>> map = codeMap.get(funName);
+        if (map == null) {
+            map = new HashMap<Integer, ArrayList<Code>>();
+            codeMap.put(funName, map);
+        }
+        map.put(paraNumber, codes);
     }
 
-    ArrayList<Code> get(String funName) {
-        return codeMap.get(funName);
+    ArrayList<Code> get(String funName, int paraNumber) {
+        HashMap<Integer, ArrayList<Code>> map = codeMap.get(funName);
+        if (map == null) {
+            return null;
+        }
+        return map.get(paraNumber);
     }
 }
