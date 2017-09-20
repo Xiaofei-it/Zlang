@@ -13,6 +13,7 @@ enum Fct {
     JMP,
     JPC,
     FUN,
+    PROC,
     FUN_RETURN,
     VOID_RETURN,
 }

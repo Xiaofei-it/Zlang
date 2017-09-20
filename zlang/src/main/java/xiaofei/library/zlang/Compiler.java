@@ -210,12 +210,28 @@ public class Compiler {
         codes.get(codeIndex).setOperand(operand);
     }
 
+    private void callFunction() {
+        int paraNumber = 0;
+        moveToNextSymbol();
+        while (!nextSymbol.equals(")")) {
+            simpleExpression();
+            ++paraNumber;
+            if (nextSymbol.equals(",")) {
+                moveToNextSymbol();
+            } else if (!nextSymbol.equals(")")) {
+                throw new CompilerException(CompilerError.MISSING_SYMBOL, "')' or ','");
+            }
+        }
+        generateCode(Fct.LIT, paraNumber);
+    }
+
     private void factor() {
         if (nextSymbol.equals("id")) {
             String id = (String) nextObject;
             moveToNextSymbol();
             if (nextSymbol.equals("(")) {
-                // TODO
+                callFunction();
+                generateCode(Fct.FUN, id);// add a label to indicate we should not ignore the return value.
             } else {
                 Integer addr = symbolTable.get(id);
                 if (addr == null) {
@@ -313,19 +329,22 @@ public class Compiler {
         if (nextSymbol.equals(";")) {
             moveToNextSymbol();
         } else if (nextSymbol.equals("id")) {
-            String id = (String) nextObject;
-            Integer addr = symbolTable.get(id);
-            if (addr == null) {
-                symbolTable.put(id, addr = ++offset);
-                // TODO modify the operand
-            }
             moveToNextSymbol();
+            String id = (String) nextObject;
             if (nextSymbol.equals("=")) {
+                Integer addr = symbolTable.get(id);
+                if (addr == null) {
+                    symbolTable.put(id, addr = ++offset);
+                    // TODO modify the operand
+                }
                 moveToNextSymbol();
                 expression();
                 generateCode(Fct.STO, addr);
+            } else if (nextSymbol.equals("(")) {
+                function();
+                generateCode(Fct.FUN, id);
             } else {
-                throw new CompilerException(CompilerError.ASSIGN_ERROR);
+                throw new CompilerException(CompilerError.ASSIGN_OR_CALL_FUNCTION_ERROR);
             }
             if (!nextSymbol.equals(";")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
