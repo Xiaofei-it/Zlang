@@ -43,18 +43,31 @@ class Executor {
                     break;
                 case FUN:
                 case PROC: {
+                    String funName = (String) code.getOperand();
                     int paraNumber = (int) stack[t];
-                    for (int i = t; i >= t - paraNumber + 1; --i) {
-                        stack[i + 3] = stack[i];
+                    if (funName.startsWith("_")) {
+                        Object[] parameters = new Object[paraNumber];
+                        for (int i = t; i >= t - paraNumber + 1; --i) {
+                            parameters[t - i] = stack[i];
+                        }
+                        t = t - paraNumber;
+                        Object result = InternalFunctions.call(funName, parameters);
+                        if (fct == Fct.FUN) {
+                            stack[t++] = result;
+                        }
+                    } else {
+                        for (int i = t; i >= t - paraNumber + 1; --i) {
+                            stack[i + 3] = stack[i];
+                        }
+                        t = t - paraNumber;
+                        stack[t + 1] = b;
+                        stack[t + 2] = codes;
+                        stack[t + 3] = p;
+                        stack[t + 4] = fct == Fct.FUN;
+                        b = t + 1;
+                        codes = new ArrayList<>();
+                        p = 0;
                     }
-                    t = t - paraNumber;
-                    stack[t + 1] = b;
-                    stack[t + 2] = codes;
-                    stack[t + 3] = p;
-                    stack[t + 4] = fct == Fct.FUN;
-                    b = t + 1;
-                    codes = new ArrayList<>();
-                    p = 0;
                     break;
                 }
                 case FUN_RETURN:
