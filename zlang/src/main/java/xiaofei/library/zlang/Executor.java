@@ -19,7 +19,8 @@ class Executor {
         stack[1] = -1;
         do {
             Code code = codes.get(p++);
-            switch (code.getOpr()) {
+            Fct fct = code.getOpr();
+            switch (fct) {
                 case LIT:
                     stack[++t] = code.getOperand();
                     break;
@@ -41,15 +42,34 @@ class Executor {
                     }
                     break;
                 case FUN:
+                case PROC: {
                     int paraNumber = (int) stack[t];
-                    // TODO
+                    for (int i = t; i >= t - paraNumber + 1; --i) {
+                        stack[i + 3] = stack[i];
+                    }
+                    t = t - paraNumber;
+                    stack[t + 1] = b;
+                    stack[t + 2] = codes;
+                    stack[t + 3] = p;
+                    stack[t + 4] = fct == Fct.FUN;
+                    b = t + 1;
+                    codes = new ArrayList<>();
+                    p = 0;
                     break;
-                case PROC:
-                    break;
+                }
                 case FUN_RETURN:
-                case VOID_RETURN:
+                case VOID_RETURN: {
+                    int index = t;
+                    t = b - 1;
+                    codes = (ArrayList<Code>) stack[t + 2];
+                    p = (int) stack[t + 3];
+                    b = (int) stack[t + 1];
+                    if ((boolean) stack[t + 4] && fct == Fct.FUN_RETURN) {
+                        stack[++t] = stack[index];
+                    }
                     break;
-                case OPR:
+                }
+                case OPR: {
                     OprAdapter oprAdapter = OprAdapterFactory.getInstance((Opr) code.getOperand());
                     int num = oprAdapter.getOperandNumber();
                     Object[] objects = new Object[num];
@@ -58,6 +78,7 @@ class Executor {
                     }
                     stack[t = t - num + 1] = oprAdapter.operate(objects);
                     break;
+                }
             }
         } while (p != -1);
         return stack[0];
