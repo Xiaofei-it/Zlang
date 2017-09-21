@@ -342,7 +342,7 @@ public class Compiler {
                 generateCode(Fct.STO, addr);
             } else if (nextSymbol.equals("(")) {
                 function();
-                generateCode(Fct.FUN, id);
+                generateCode(Fct.PROC, id);
             } else {
                 throw new CompilerException(CompilerError.ASSIGN_OR_CALL_FUNCTION_ERROR);
             }
