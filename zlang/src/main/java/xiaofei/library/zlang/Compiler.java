@@ -68,14 +68,18 @@ public class Compiler {
 
     private Map<String, Integer> symbolTable = new HashMap<>();
 
+    private Library library;
+
     private String program;
 
     private ArrayList<Code> codes = new ArrayList<>();
 
     private int codeIndex; // The last code index
 
-    public Compiler(String program) {
-        this.program = program;
+    public Compiler(Library library) {
+        // TODO two codes: one is the one we put the codes into, and the other is the one we import code from.
+        program = library.getProgram();
+        this.library = library;
         pos = -1;
         continueRecorder = new LabelRecorder();
         breakRecorder = new LabelRecorder();
@@ -210,7 +214,7 @@ public class Compiler {
         codes.get(codeIndex).setOperand(operand);
     }
 
-    private void callFunction() {
+    private int callFunction() {
         int paraNumber = 0;
         moveToNextSymbol();
         while (!nextSymbol.equals(")")) {
@@ -223,6 +227,16 @@ public class Compiler {
             }
         }
         generateCode(Fct.LIT, paraNumber);
+        return paraNumber;
+    }
+
+    private void addIntoNeededFunctions(String functionName, int parameterNumber) {
+        for (FunctionWrapper functionWrapper : mNeededFunction) {
+            if (functionWrapper.functionName.equals(functionName) && functionWrapper.paraNumber == parameterNumber) {
+                return;
+            }
+        }
+        mNeededFunction.add(new FunctionWrapper(functionName, parameterNumber));
     }
 
     private void factor() {
@@ -230,8 +244,9 @@ public class Compiler {
             String id = (String) nextObject;
             moveToNextSymbol();
             if (nextSymbol.equals("(")) {
-                callFunction();
+                int parameterNumber = callFunction();
                 generateCode(Fct.FUN, id);// add a label to indicate we should not ignore the return value.
+                addIntoNeededFunctions(id, parameterNumber);
             } else {
                 Integer addr = symbolTable.get(id);
                 if (addr == null) {
@@ -341,8 +356,9 @@ public class Compiler {
                 expression();
                 generateCode(Fct.STO, addr);
             } else if (nextSymbol.equals("(")) {
-                function();
+                int parameterNumber = callFunction();
                 generateCode(Fct.PROC, id);
+                addIntoNeededFunctions(id, parameterNumber);
             } else {
                 throw new CompilerException(CompilerError.ASSIGN_OR_CALL_FUNCTION_ERROR);
             }
@@ -550,34 +566,24 @@ public class Compiler {
 //                throw new CompilerException(CompilerError.ParameterNumberWrong,FunctionName);
         statement(false);
         generateCode(Fct.VOID_RETURN, 0);//This is different from funReturn  here when meet this, is a error.
-        CODE_STORAGE.put(functionName, paraNumber, codes);
+        library.put(functionName, paraNumber, codes);
     }
 
-    private void requestFunction(String functionName, int paraNumber) {
-        if (CODE_STORAGE.get(functionName, paraNumber) == null) {
-            mNeededFunction.add(new FunctionWrapper(functionName, paraNumber));
-        }
-    }
-
-    public void compile(String function) {
-        this.program = function;
+    void compile() {
         do {
             function();
-            Iterator<FunctionWrapper> iterator = mNeededFunction.iterator();
-            while (iterator.hasNext()) {
-                FunctionWrapper functionWrapper = iterator.next();
-                if (CODE_STORAGE.get(functionWrapper.functionName, functionWrapper.paraNumber) != null) {
-                    iterator.remove();
-                } else {
-                    this.program = FUNCTION_STORAGE.get(functionWrapper.functionName, functionWrapper.paraNumber);
-                    if (this.program == null) {
-                        //TODO
-                    } else {
-                        break;
-                    }
-                }
+            if (nextSymbol.equals("END")) {
+                break;
+            } else if (!nextSymbol.equals("function")) {
+                throw new CompilerException(null);
             }
-        } while (!mNeededFunction.isEmpty());
+        } while (true);
+        library.compileSubLibraries();
+        for (FunctionWrapper functionWrapper : mNeededFunction) {
+            if (!library.containFunction(functionWrapper.functionName, functionWrapper.paraNumber)) {
+                throw new CompilerException(null);
+            }
+        }
     }
 
     private LinkedList<FunctionWrapper> mNeededFunction = new LinkedList<>();
@@ -622,4 +628,4 @@ public class Compiler {
         }
     }
 }
-// TODO override
+// TODO override    string
