@@ -41,6 +41,27 @@ public class Library {
         return contain;
     }
 
+    FunctionSearchResult get(String functionName, int parameterNumber) {
+        if (codeMap == null) {
+            throw new CompilerException(null);
+        }
+        HashMap<Integer, ArrayList<Code>> codes = codeMap.get(functionName);
+        ArrayList<Code> code = null;
+        if (codes != null) {
+            code = codes.get(parameterNumber);
+        }
+        if (code != null) {
+            return new FunctionSearchResult(this, code);
+        }
+        for (Library library : subLibraries) {
+            FunctionSearchResult result  = library.get(functionName, parameterNumber);
+            if (result != null) {
+                return result;
+            }
+        }
+        return null;
+    }
+
     void put(String functionName, int parameterNumber, ArrayList<Code> codesToPut) {
         HashMap<Integer, ArrayList<Code>> codes = codeMap.get(functionName);
         if (codes == null) {
@@ -92,6 +113,15 @@ public class Library {
             library.subLibraries = subLibraries;
             library.program = program.toString();
             return library;
+        }
+    }
+
+    static class FunctionSearchResult {
+        final Library library;
+        final ArrayList<Code> codes;
+        FunctionSearchResult(Library library, ArrayList<Code> codes) {
+            this.library = library;
+            this.codes = codes;
         }
     }
 }
