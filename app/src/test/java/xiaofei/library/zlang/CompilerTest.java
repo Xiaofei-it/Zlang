@@ -2,13 +2,9 @@ package xiaofei.library.zlang;
 
 import org.junit.Test;
 
-import xiaofei.library.zlang.Compiler;
-
-import static org.junit.Assert.*;
-
 public class CompilerTest {
     @Test
-    public void compile() throws Exception {
+    public void test1() throws Exception {
         Library library = new Library.Builder()
                 .addFunctions("function f1(a,c) {b=(a+c)*1 + a/c/c;return a + b;}" +
                         "function f2(a) {a = 1; return a==a;}" +
@@ -22,5 +18,15 @@ public class CompilerTest {
         library.print("f3", 1);
         library.print("f4", 1);
         library.print("f5", 0);
+    }
+
+    @Test
+    public void test2() throws Exception {
+        Library library = new Library.Builder()
+                .addFunctions("function f(a) {g();} function g() {f(1);}")
+                .build();
+        library.compile();
+        library.print("f", 1);
+        library.print("g", 0);
     }
 }

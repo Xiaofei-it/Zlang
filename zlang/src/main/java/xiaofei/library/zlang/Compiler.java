@@ -220,6 +220,7 @@ public class Compiler {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')' or ','");
             }
         }
+        moveToNextSymbol();
         generateCode(Fct.LIT, paraNumber);
         return paraNumber;
     }
@@ -242,11 +243,11 @@ public class Compiler {
                 generateCode(Fct.FUN, id);// add a label to indicate we should not ignore the return value.
                 addIntoNeededFunctions(id, parameterNumber);
             } else {
-                Integer addr = symbolTable.get(id);
-                if (addr == null) {
+                Integer address = symbolTable.get(id);
+                if (address == null) {
                     throw new CompilerException(CompilerError.UNINITIALIZED_VARIABLE, id);
                 }
-                generateCode(Fct.LOD, addr);
+                generateCode(Fct.LOD, address);
             }
         } else if (nextSymbol.equals("num")) {
             generateCode(Fct.LIT, nextObject);
@@ -440,9 +441,9 @@ public class Compiler {
                 throw new CompilerException(CompilerError.FOR_ERROR, "ID");
             }
             String id = (String) nextObject;
-            Integer addr = symbolTable.get(id);
-            if (addr == null) {
-                symbolTable.put(id, addr = ++offset);
+            Integer address = symbolTable.get(id);
+            if (address == null) {
+                symbolTable.put(id, address = ++offset);
             }
             moveToNextSymbol();
             if (!nextSymbol.equals("=")) {
@@ -450,14 +451,14 @@ public class Compiler {
             }
             moveToNextSymbol();
             simpleExpression();
-            generateCode(Fct.STO, addr);
+            generateCode(Fct.STO, address);
             int tmp1 = codeIndex + 1;
             if (!nextSymbol.equals("to")) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "to");
             }
             moveToNextSymbol();
             simpleExpression();
-            generateCode(Fct.LOD, addr);
+            generateCode(Fct.LOD, address);
             generateCode(Fct.OPR, Opr.GREATER_EQUAL);
             generateCode(Fct.JPC, 0);
             int tmp2 = codeIndex;
@@ -469,9 +470,9 @@ public class Compiler {
             }
             moveToNextSymbol();
             simpleExpression();
-            generateCode(Fct.LOD, addr);
+            generateCode(Fct.LOD, address);
             generateCode(Fct.OPR, Opr.PLUS);
-            generateCode(Fct.STO, addr);
+            generateCode(Fct.STO, address);
             generateCode(Fct.JMP, tmp1);
             modifyCodeOperand(tmp3, codeIndex + 1);
             // TODO check
