@@ -73,7 +73,11 @@ public class Library {
         }
     }
 
-    private void compile() {
+    void compile() {
+        if (codeMap != null) {
+            return;
+        }
+        codeMap = new HashMap<>();
         new Compiler(this).compile();
     }
 
@@ -87,6 +91,26 @@ public class Library {
         }
     }
 
+    /**
+     * For unit test only!
+     *
+     * @param functionName
+     * @param parameterNumber
+     */
+    void print(String functionName, int parameterNumber) {
+        FunctionSearchResult result = get(functionName, parameterNumber);
+        if (result == null) {
+            System.out.println("No such function");
+        } else {
+            System.out.println(functionName + " " + parameterNumber);
+            int size = result.codes.size();
+            for (int i = 0; i < size; ++i) {
+                Code code = result.codes.get(i);
+                System.out.println(i+ "\t" + code.getOpr() + "\t" + code.getOperand());
+            }
+            System.out.println("End.");
+        }
+    }
     public static class Builder {
 
         private StringBuilder program;

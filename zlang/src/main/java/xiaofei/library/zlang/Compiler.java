@@ -24,6 +24,7 @@ public class Compiler {
     private static final Set<String> RESERVED_WORDS = new HashSet<String>() {
         {
             add("END");
+            add("function");
             add("if");
             add("else");
             add("while");
@@ -49,7 +50,7 @@ public class Compiler {
 
     private int pos = -1;
 
-    private char nextChar; // After read, this points to the next char to read.
+    private char nextChar = ' '; // After read, this points to the next char to read.
 
     private String nextSymbol; // After read, this points to the next symbol to read.
 
@@ -57,7 +58,7 @@ public class Compiler {
 
     private int offset;
 
-    private int codeIndex = -1; // The last code index
+    private int codeIndex; // The last code index
 
     private LabelRecorder continueRecorder = new LabelRecorder();
 
@@ -71,7 +72,7 @@ public class Compiler {
 
     private String program;
 
-    private ArrayList<Code> codes = new ArrayList<>();
+    private ArrayList<Code> codes;
 
     public Compiler(Library library) {
         program = library.getProgram();
@@ -120,6 +121,7 @@ public class Compiler {
                 nextSymbol = id;
             } else {
                 nextSymbol = "id";
+                nextObject = id;
             }
         } else if (isDigit(nextChar)) {
             nextSymbol = "num";
@@ -245,7 +247,6 @@ public class Compiler {
                     throw new CompilerException(CompilerError.UNINITIALIZED_VARIABLE, id);
                 }
                 generateCode(Fct.LOD, addr);
-                moveToNextSymbol();
             }
         } else if (nextSymbol.equals("num")) {
             generateCode(Fct.LIT, nextObject);
@@ -339,14 +340,14 @@ public class Compiler {
             moveToNextSymbol();
             String id = (String) nextObject;
             if (nextSymbol.equals("=")) {
-                Integer addr = symbolTable.get(id);
-                if (addr == null) {
-                    symbolTable.put(id, addr = ++offset);
+                Integer address = symbolTable.get(id);
+                if (address == null) {
+                    symbolTable.put(id, address = ++offset);
                     // TODO modify the operand
                 }
                 moveToNextSymbol();
                 expression();
-                generateCode(Fct.STO, addr);
+                generateCode(Fct.STO, address);
             } else if (nextSymbol.equals("(")) {
                 int parameterNumber = callFunction();
                 generateCode(Fct.PROC, id);
@@ -400,7 +401,8 @@ public class Compiler {
             }
             moveToNextSymbol();
         } else if (nextSymbol.equals("while")) {
-            int tmp1 = codeIndex;
+            int tmp1 = codeIndex + 1;
+            moveToNextSymbol();
             if (!nextSymbol.equals("(")) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "'('");
             }
@@ -496,7 +498,7 @@ public class Compiler {
         } else if (nextSymbol.equals("return")) {
             moveToNextSymbol();
             if (!nextSymbol.equals(";")) {
-                simpleExpression();
+                expression();
                 generateCode(Fct.FUN_RETURN, 0);
             } else {
                 generateCode(Fct.VOID_RETURN, 0);
@@ -516,7 +518,11 @@ public class Compiler {
         breakRecorder.init();
         continueRecorder.init();
         symbolTable.clear();
-        moveToNextSymbol();
+        codes = new ArrayList<>();
+        codeIndex = -1;
+        if (nextSymbol == null) {
+            moveToNextSymbol();
+        }
         if (!nextSymbol.equals("function")) {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "function");
         }
@@ -551,13 +557,14 @@ public class Compiler {
             }
         }
         moveToNextSymbol();
-        generateCode(Fct.INT, offset + 1);//????????????????????要不要加1
+        generateCode(Fct.INT, offset + 2);
         statement(false);
         generateCode(Fct.VOID_RETURN, 0);
         library.put(functionName, parameterNumber, codes);
     }
 
     void compile() {
+        program += "END ";
         do {
             function();
             if (nextSymbol.equals("END")) {
@@ -614,5 +621,5 @@ public class Compiler {
         }
     }
 }
-// TODO override    string
+// TODO override    string char true
 // TODO delete ";"

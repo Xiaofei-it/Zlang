@@ -18,7 +18,7 @@ class Executor {
         ArrayList<Code> codes = functionSearchResult.codes;
         Library library = functionSearchResult.library;
         stack[0] = new Frame(0, -1, null, null, true);
-        int pos = 0, base = 0, top = 0;
+        int pos = 0, base = 1, top = 0;
         do {
             Code code = codes.get(pos++);
             Fct fct = code.getOpr();
@@ -45,26 +45,26 @@ class Executor {
                     break;
                 case FUN:
                 case PROC: {
-                    String funName = (String) code.getOperand();
-                    int paraNumber = (int) stack[top];
-                    if (funName.startsWith("_")) {
-                        Object[] parameters = new Object[paraNumber];
-                        for (int i = top; i >= top - paraNumber + 1; --i) {
+                    String functionName = (String) code.getOperand();
+                    int parameterNumber = (int) stack[top];
+                    if (functionName.startsWith("_")) {
+                        Object[] parameters = new Object[parameterNumber];
+                        for (int i = top; i >= top - parameterNumber + 1; --i) {
                             parameters[top - i] = stack[i];
                         }
-                        top = top - paraNumber;
-                        Object result = InternalFunctions.call(funName, parameters);
+                        top -= parameterNumber;
+                        Object result = InternalFunctions.call(functionName, parameters);
                         if (fct == Fct.FUN) {
                             stack[top++] = result;
                         }
                     } else {
-                        for (int i = top; i >= top - paraNumber + 1; --i) {
+                        for (int i = top; i >= top - parameterNumber + 1; --i) {
                             stack[i + 3] = stack[i];
                         }
-                        top = top - paraNumber;
+                        top = top - parameterNumber;
                         stack[top + 1] = new Frame(base, pos, codes, library, fct == Fct.FUN);
                         base = top + 1;
-                        Library.FunctionSearchResult result = library.get(funName, paraNumber);
+                        Library.FunctionSearchResult result = library.get(functionName, parameterNumber);
                         library = result.library;
                         codes = result.codes;
                         pos = 0;
