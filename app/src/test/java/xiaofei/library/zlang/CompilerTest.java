@@ -22,11 +22,16 @@ public class CompilerTest {
 
     @Test
     public void test2() throws Exception {
-        Library library = new Library.Builder()
+        Library library1 = new Library.Builder()
                 .addFunctions("function f(a) {g();} function g() {f(1);}")
                 .build();
-        library.compile();
-        library.print("f", 1);
-        library.print("g", 0);
+        Library library2 = new Library.Builder()
+                .addFunctions("function f1(a) {g();}")
+                .addDependency(library1)
+                .build();
+        library2.compile();
+        library2.print("f", 1);
+        library2.print("g", 0);
+        library2.print("f1", 1);
     }
 }
