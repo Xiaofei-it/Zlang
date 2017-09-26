@@ -9,19 +9,19 @@ import java.util.HashMap;
 
 public class Library {
 
-    private ArrayList<Library> subLibraries;
+    private ArrayList<Library> dependencies;
 
     private HashMap<String, HashMap<Integer, ArrayList<Code>>> codeMap;
 
     private String program;
 
     private Library() {
-        subLibraries = null;
+        dependencies = null;
         codeMap = null;
         program = null;
     }
 
-    boolean containFunction(String functionName, int parameterNumber) {
+    boolean containsFunction(String functionName, int parameterNumber) {
         if (codeMap == null) {
             throw new CompilerException(null);
         }
@@ -31,8 +31,8 @@ public class Library {
             contain = codes.containsKey(parameterNumber);
         }
         if (!contain) {
-            for (Library library : subLibraries) {
-                if (library.containFunction(functionName, parameterNumber)) {
+            for (Library library : dependencies) {
+                if (library.containsFunction(functionName, parameterNumber)) {
                     contain = true;
                     break;
                 }
@@ -53,7 +53,7 @@ public class Library {
         if (code != null) {
             return new FunctionSearchResult(this, code);
         }
-        for (Library library : subLibraries) {
+        for (Library library : dependencies) {
             FunctionSearchResult result  = library.get(functionName, parameterNumber);
             if (result != null) {
                 return result;
@@ -81,8 +81,8 @@ public class Library {
         return program;
     }
 
-    void compileSubLibraries() {
-        for (Library library : subLibraries) {
+    void compileDependencies() {
+        for (Library library : dependencies) {
             library.compile();
         }
     }
@@ -91,11 +91,11 @@ public class Library {
 
         private StringBuilder program;
 
-        private ArrayList<Library> subLibraries;
+        private ArrayList<Library> dependencies;
 
         public Builder() {
             program = new StringBuilder();
-            subLibraries = new ArrayList<>();
+            dependencies = new ArrayList<>();
         }
 
         public Builder addFunctions(String functions) {
@@ -103,14 +103,14 @@ public class Library {
             return this;
         }
 
-        public Builder addSubLibrary(Library library) {
-            subLibraries.add(library);
+        public Builder addDependency(Library library) {
+            dependencies.add(library);
             return this;
         }
 
         public Library build() {
             Library library = new Library();
-            library.subLibraries = subLibraries;
+            library.dependencies = dependencies;
             library.program = program.toString();
             return library;
         }

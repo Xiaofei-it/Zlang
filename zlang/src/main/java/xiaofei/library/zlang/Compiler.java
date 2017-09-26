@@ -3,7 +3,6 @@ package xiaofei.library.zlang;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -48,11 +47,7 @@ public class Compiler {
         }
     };
 
-    private static final CodeStorage CODE_STORAGE = CodeStorage.getInstance();
-
-    private static final FunctionStorage FUNCTION_STORAGE = FunctionStorage.getInstance();
-
-    private int pos;
+    private int pos = -1;
 
     private char nextChar; // After read, this points to the next char to read.
 
@@ -62,11 +57,15 @@ public class Compiler {
 
     private int offset;
 
-    private LabelRecorder continueRecorder;
+    private int codeIndex = -1; // The last code index
 
-    private LabelRecorder breakRecorder;
+    private LabelRecorder continueRecorder = new LabelRecorder();
+
+    private LabelRecorder breakRecorder = new LabelRecorder();
 
     private Map<String, Integer> symbolTable = new HashMap<>();
+
+    private LinkedList<FunctionWrapper> mNeededFunctions = new LinkedList<>();
 
     private Library library;
 
@@ -74,15 +73,9 @@ public class Compiler {
 
     private ArrayList<Code> codes = new ArrayList<>();
 
-    private int codeIndex; // The last code index
-
     public Compiler(Library library) {
-        // TODO two codes: one is the one we put the codes into, and the other is the one we import code from.
         program = library.getProgram();
         this.library = library;
-        pos = -1;
-        continueRecorder = new LabelRecorder();
-        breakRecorder = new LabelRecorder();
     }
 
     private static boolean isAlpha(char ch) {
@@ -94,8 +87,7 @@ public class Compiler {
     }
 
     private void moveToNextChar() {
-        ++pos;
-        if (pos == program.length()) {
+        if (++pos == program.length()) {
             throw new CompilerException(CompilerError.INCOMPLETE_PROGRAM);
         }
 		nextChar = program.charAt(pos);
@@ -231,12 +223,12 @@ public class Compiler {
     }
 
     private void addIntoNeededFunctions(String functionName, int parameterNumber) {
-        for (FunctionWrapper functionWrapper : mNeededFunction) {
-            if (functionWrapper.functionName.equals(functionName) && functionWrapper.paraNumber == parameterNumber) {
+        for (FunctionWrapper functionWrapper : mNeededFunctions) {
+            if (functionWrapper.functionName.equals(functionName) && functionWrapper.parameterNumber == parameterNumber) {
                 return;
             }
         }
-        mNeededFunction.add(new FunctionWrapper(functionName, parameterNumber));
+        mNeededFunctions.add(new FunctionWrapper(functionName, parameterNumber));
     }
 
     private void factor() {
@@ -518,14 +510,12 @@ public class Compiler {
 
     private void function() {
 		/*
-		 * 刚刚显示错误没事的
 		 * function id()
 		 * {....} END
 		 */
-        nextChar = ' ';
-        pos=-1;
         breakRecorder.init();
         continueRecorder.init();
+        symbolTable.clear();
         moveToNextSymbol();
         if (!nextSymbol.equals("function")) {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "function");
@@ -537,7 +527,7 @@ public class Compiler {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "ID");
         }
         String functionName = (String) nextObject;
-        int paraNumber = 0;
+        int parameterNumber = 0;
         offset = -1;
         if (nextSymbol.equals("(")) {
             moveToNextSymbol();
@@ -546,11 +536,11 @@ public class Compiler {
         }
         while (!nextSymbol.equals(")")) {
             if (!nextSymbol.equals("id")) {
-                throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "para");
+                throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "parameter");
             }
             String id = (String) nextObject;
-            ++paraNumber;
-            ++offset;
+            ++parameterNumber;
+            ++offset; // TODO init error
             symbolTable.put(id, offset);
             moveToNextSymbol();
             if (!nextSymbol.equals(")") && !nextSymbol.equals(",")) {
@@ -562,11 +552,9 @@ public class Compiler {
         }
         moveToNextSymbol();
         generateCode(Fct.INT, offset + 1);//????????????????????要不要加1
-//        if (!Functions.setAfterCheck(FunctionName,para,cx))
-//                throw new CompilerException(CompilerError.ParameterNumberWrong,FunctionName);
         statement(false);
-        generateCode(Fct.VOID_RETURN, 0);//This is different from funReturn  here when meet this, is a error.
-        library.put(functionName, paraNumber, codes);
+        generateCode(Fct.VOID_RETURN, 0);
+        library.put(functionName, parameterNumber, codes);
     }
 
     void compile() {
@@ -575,25 +563,25 @@ public class Compiler {
             if (nextSymbol.equals("END")) {
                 break;
             } else if (!nextSymbol.equals("function")) {
-                throw new CompilerException(null);
+                throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "function");
             }
         } while (true);
-        library.compileSubLibraries();
-        for (FunctionWrapper functionWrapper : mNeededFunction) {
-            if (!library.containFunction(functionWrapper.functionName, functionWrapper.paraNumber)) {
-                throw new CompilerException(null);
+        library.compileDependencies();
+        for (FunctionWrapper functionWrapper : mNeededFunctions) {
+            if (!library.containsFunction(functionWrapper.functionName, functionWrapper.parameterNumber)) {
+                throw new CompilerException(CompilerError.UNDEFINED_FUNCTION,
+                        "Function name: " + functionWrapper.functionName
+                                + " Parameter number: " + functionWrapper.parameterNumber);
             }
         }
     }
 
-    private LinkedList<FunctionWrapper> mNeededFunction = new LinkedList<>();
-
     private static class FunctionWrapper {
         final String functionName;
-        final int paraNumber;
-        FunctionWrapper(String functionName, int paraNumber) {
+        final int parameterNumber;
+        FunctionWrapper(String functionName, int parameterNumber) {
             this.functionName = functionName;
-            this.paraNumber = paraNumber;
+            this.parameterNumber = parameterNumber;
         }
     }
     private class LabelRecorder {
@@ -613,12 +601,10 @@ public class Compiler {
             labels.put(currentLabel, new HashSet<Integer>());
         }
 
-        void modifyCode(int cx) {
-            HashSet<Integer> cxs = labels.get(currentLabel);
-//            if (s==null)
-//                return;
-            for (int c :cxs) {
-                codes.get(c).setOperand(cx);
+        void modifyCode(int target) {
+            HashSet<Integer> previousCodeIndexes = labels.get(currentLabel);
+            for (int index :previousCodeIndexes) {
+                codes.get(index).setOperand(target);
             }
         }
 
@@ -629,3 +615,4 @@ public class Compiler {
     }
 }
 // TODO override    string
+// TODO delete ";"
