@@ -621,5 +621,4 @@ public class Compiler {
         }
     }
 }
-// TODO override    string char true
-// TODO delete ";"
+// TODO string char true

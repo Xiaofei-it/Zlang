@@ -58,4 +58,17 @@ public class CompilerTest {
         library.compile();
         library.print("f", 1);
     }
+
+    @Test
+    public void test4() throws Exception {
+        Library library = new Library.Builder()
+                .addFunctions("function f(a) {" +
+                        "s = 0;" +
+                        "for i = 0 to 100 step 1 { s = s + i;if (s > 100) break; else continue;}" +
+                        "return s;" +
+                        "}")
+                .build();
+        library.compile();
+        library.print("f", 1);
+    }
 }
