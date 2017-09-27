@@ -8,13 +8,14 @@ public class ExecutorTest {
         Library library = new Library.Builder()
                 .addFunctions("function f1(a) {if (a == 0) return 0; else return a + f1(a-1);}")
                 .addFunctions("function f1(a, b) {if (a == 0) return 8*9; }")
+                .addFunctions("function g(a) {return f2(a);}")
                 .addFunctions("function f2(a) {s = 0; for i = 0 to a step 1 s =s + i; return s;}")
                 .build();
         library.compile();
         library.print("f2", 1);
         System.out.println(library.execute("f1", new Object[]{100, 3}));
         System.out.println(library.execute("f1", new Object[]{0, 3}));
-        System.out.println(library.execute("f2", new Object[]{100}));
+        System.out.println(library.execute("g", new Object[]{100}));
     }
 
     @Test

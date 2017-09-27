@@ -22,7 +22,7 @@ class Executor {
         for (int i = 0; i < length; ++i) {
             stack[i + 1] = input[i];
         }
-        int pos = 0, base = 1, top = length;
+        int pos = 0, base = 1, top = 0;
         Object returnValue = null;
         do {
             Code code = codes.get(pos++);

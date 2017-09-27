@@ -562,7 +562,7 @@ public class Compiler {
         int tmp = codeIndex;
         statement(false);
         generateCode(Fct.VOID_RETURN, 0);
-        modifyCodeOperand(tmp, offset);
+        modifyCodeOperand(tmp, offset + 1);
         library.put(functionName, parameterNumber, codes);
     }
 
