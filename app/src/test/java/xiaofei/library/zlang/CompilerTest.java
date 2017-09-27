@@ -34,4 +34,28 @@ public class CompilerTest {
         library2.print("g", 0);
         library2.print("f1", 1);
     }
+
+    @Test
+    public void test3() throws Exception {
+        Library library = new Library.Builder()
+                .addFunctions("function f(a) {" +
+                        "a = 1;" +
+                        "while (a > 0) {" +
+                        "  a=a*8;" +
+                        "  if ((a<=10)&&(a>8)) {" +
+                        "    s = 0;" +
+                        "    while (s< 100) {" +
+                        "      s=s+a;" +
+                        "      if (s>10) break; else continue;" +
+                        "    }" +
+                        "  } else {a = a+1;continue;}" +
+                        "  s = 100 *9;" +
+                        "  if (s == 100) break;" +
+                        "   f(a-1);" +
+                        "}" +
+                        "}")
+                .build();
+        library.compile();
+        library.print("f", 1);
+    }
 }

@@ -209,11 +209,11 @@ public class Compiler {
     }
 
     private int callFunction() {
-        int paraNumber = 0;
+        int parameterNumber = 0;
         moveToNextSymbol();
         while (!nextSymbol.equals(")")) {
             simpleExpression();
-            ++paraNumber;
+            ++parameterNumber;
             if (nextSymbol.equals(",")) {
                 moveToNextSymbol();
             } else if (!nextSymbol.equals(")")) {
@@ -221,8 +221,8 @@ public class Compiler {
             }
         }
         moveToNextSymbol();
-        generateCode(Fct.LIT, paraNumber);
-        return paraNumber;
+        generateCode(Fct.LIT, parameterNumber);
+        return parameterNumber;
     }
 
     private void addIntoNeededFunctions(String functionName, int parameterNumber) {

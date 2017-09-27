@@ -52,8 +52,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object operand = operands[0];
+        public Object operate(Object[] stack, int start) {
+            Object operand = stack[start];
             if (operand instanceof Byte) {
                 return -(byte) operand;
             } else if (operand instanceof Character) {
@@ -84,8 +84,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 + (byte) o2;
@@ -119,8 +119,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 - (byte) o2;
@@ -152,8 +152,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 * (byte) o2;
@@ -185,8 +185,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 / (byte) o2;
@@ -218,8 +218,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            return operands[0] == operands[1];
+        public Object operate(Object[] stack, int start) {
+            return stack[start] == stack[start + 1];
         }
     }
 
@@ -233,8 +233,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            return operands[0] != operands[1];
+        public Object operate(Object[] stack, int start) {
+            return stack[start] != stack[start + 1];
         }
     }
 
@@ -248,8 +248,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 < (byte) o2;
@@ -281,8 +281,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 <= (byte) o2;
@@ -314,8 +314,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 > (byte) o2;
@@ -347,8 +347,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 >= (byte) o2;
@@ -380,8 +380,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object operand = operands[0];
+        public Object operate(Object[] stack, int start) {
+            Object operand = stack[start];
             if (operand instanceof Boolean) {
                 return !(boolean) operand;
             } else {
@@ -400,8 +400,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             if (o1 instanceof Boolean && o2 instanceof Boolean) {
                 return !(boolean) o1 && (boolean) o2;
             } else {
@@ -420,8 +420,8 @@ class OprAdapterFactory {
         }
 
         @Override
-        public Object operate(Object[] operands) {
-            Object o1 = operands[0], o2 = operands[1];
+        public Object operate(Object[] stack, int start) {
+            Object o1 = stack[start], o2 = stack[start + 1];
             if (o1 instanceof Boolean && o2 instanceof Boolean) {
                 return !(boolean) o1 || (boolean) o2;
             } else {

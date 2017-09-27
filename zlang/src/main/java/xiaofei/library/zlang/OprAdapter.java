@@ -8,6 +8,6 @@ interface OprAdapter {
 
     int getOperandNumber();
 
-    Object operate(Object[] operands);
+    Object operate(Object[] stack, int start);
 
 }
