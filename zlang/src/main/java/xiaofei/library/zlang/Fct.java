@@ -9,7 +9,6 @@ enum Fct {
     LOD,
     STO,
     OPR,
-    INT,
     JMP,
     JPC,
     FUN,

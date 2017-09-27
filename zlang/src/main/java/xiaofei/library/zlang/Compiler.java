@@ -558,7 +558,6 @@ public class Compiler {
             }
         }
         moveToNextSymbol();
-        generateCode(Fct.INT, offset + 2);
         statement(false);
         generateCode(Fct.VOID_RETURN, 0);
         library.put(functionName, parameterNumber, codes);

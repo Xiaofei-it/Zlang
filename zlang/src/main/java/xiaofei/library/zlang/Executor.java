@@ -38,9 +38,6 @@ class Executor {
                 case STO:
                     stack[base + (int) operand] = stack[top--];
                     break;
-                case INT://// TODO: 2017/9/27
-                    top += (int) operand;
-                    break;
                 case JMP:
                     pos = (int) operand;
                     break;
