@@ -12,9 +12,9 @@ class Executor {
 
     Executor() {}
 
-    Object run(Library inputLibrary, String function, Object[] input) {
-        Object[] stack = new Object[1000];
-        Library.FunctionSearchResult functionSearchResult = inputLibrary.get(function, input.length);
+    static Object execute(Library inputLibrary, String functionName, Object[] input) {
+        Object[] stack = new Object[10];
+        Library.FunctionSearchResult functionSearchResult = inputLibrary.get(functionName, input.length);
         ArrayList<Code> codes = functionSearchResult.codes;
         Library library = functionSearchResult.library;
         stack[0] = new Frame(0, -1, null, null, true);
@@ -38,6 +38,9 @@ class Executor {
                 case STO:
                     stack[base + (int) operand] = stack[top--];
                     break;
+                case INT://// TODO: 2017/9/27
+                    top += (int) operand;
+                    break;
                 case JMP:
                     pos = (int) operand;
                     break;
@@ -48,16 +51,16 @@ class Executor {
                     break;
                 case FUN:
                 case PROC: {
-                    String functionName = (String) operand;
+                    String target = (String) operand;
                     int parameterNumber = (int) stack[top--];
-                    if (functionName.startsWith("_")) {
+                    if (target.startsWith("_")) {
                         Object[] parameters = new Object[parameterNumber];
                         // 0 -> top - num + 1, num - 1 -> top
                         for (int i = 0; i < parameterNumber; ++i) {
                             parameters[i] = stack[top - parameterNumber + 1 + i];
                         }
                         top -= parameterNumber;
-                        Object result = InternalFunctions.call(functionName, parameters);
+                        Object result = InternalFunctions.call(target, parameters);
                         if (fct == Fct.FUN) {
                             stack[top++] = result;
                         }
@@ -66,10 +69,9 @@ class Executor {
                         for (int i = top; i >= top - parameterNumber + 1; --i) {
                             stack[i + 1] = stack[i];
                         }
-                        stack[top - parameterNumber + 1] = new Frame(base, pos, codes, library, fct == Fct.FUN);
-                        base = top - parameterNumber + 2;
-                        ++top;
-                        Library.FunctionSearchResult result = library.get(functionName, parameterNumber);
+                        stack[top = top - parameterNumber + 1] = new Frame(base, pos, codes, library, fct == Fct.FUN);
+                        base = top + 1;
+                        Library.FunctionSearchResult result = library.get(target, parameterNumber);
                         library = result.library;
                         codes = result.codes;
                         pos = 0;

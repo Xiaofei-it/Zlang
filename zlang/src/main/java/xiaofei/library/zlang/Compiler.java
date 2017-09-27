@@ -558,8 +558,11 @@ public class Compiler {
             }
         }
         moveToNextSymbol();
+        generateCode(Fct.INT, 0);
+        int tmp = codeIndex;
         statement(false);
         generateCode(Fct.VOID_RETURN, 0);
+        modifyCodeOperand(tmp, offset);
         library.put(functionName, parameterNumber, codes);
     }
 
