@@ -119,6 +119,9 @@ public class Compiler {
             } while (isAlpha(nextChar) || isDigit(nextChar));
             if (RESERVED_WORDS.contains(id)) {
                 nextSymbol = id;
+            } else if (id.equals("true") || id.equals("false")) {
+                nextSymbol = "boolean";
+                nextObject = id;
             } else {
                 nextSymbol = "id";
                 nextObject = id;
@@ -144,6 +147,28 @@ public class Compiler {
             } else {
                 nextObject = intNum;
             }
+        } else if (nextChar == '\'') {
+            nextSymbol = "char";
+            moveToNextChar();
+            if (nextChar == '~') {
+                moveToNextChar();
+            }
+            nextObject = nextChar;
+        } else if (nextChar == '\"') {
+            nextSymbol = "string";
+            String data = "";
+            moveToNextChar();
+            while (true) {
+                if (nextChar == '\"') {
+                    break;
+                }
+                if (nextChar == '~') {
+                    moveToNextChar();
+                }
+                data += nextChar;
+                moveToNextChar();
+            }
+            nextObject = data;
         } else if (nextChar == '<') {
             moveToNextChar();
             if (nextChar == '=') {
@@ -347,7 +372,6 @@ public class Compiler {
                 Integer address = symbolTable.get(id);
                 if (address == null) {
                     symbolTable.put(id, address = ++offset);
-                    // TODO modify the operand
                 }
                 moveToNextSymbol();
                 expression();
@@ -478,7 +502,6 @@ public class Compiler {
             generateCode(Fct.STO, address);
             generateCode(Fct.JMP, tmp1);
             modifyCodeOperand(tmp3, codeIndex + 1);
-            // TODO check
             breakRecorder.createNewLabel();
             continueRecorder.createNewLabel();
             statement(true);
@@ -515,11 +538,7 @@ public class Compiler {
     }
 
     private void function() {
-		/*
-		 * function id()
-		 * {....} END
-		 */
-        breakRecorder.init();
+		breakRecorder.init();
         continueRecorder.init();
         symbolTable.clear();
         codes = new ArrayList<>();
@@ -550,7 +569,7 @@ public class Compiler {
             }
             String id = (String) nextObject;
             ++parameterNumber;
-            ++offset; // TODO init error
+            ++offset;
             symbolTable.put(id, offset);
             moveToNextSymbol();
             if (!nextSymbol.equals(")") && !nextSymbol.equals(",")) {
@@ -605,13 +624,12 @@ public class Compiler {
             labels = new HashMap<Integer,HashSet<Integer>>();
         }
 
-        void addCode(int cx) {
-            labels.get(currentLabel).add(cx);
+        void addCode(int codeIndex) {
+            labels.get(currentLabel).add(codeIndex);
         }
 
         void createNewLabel() {
-            ++currentLabel;
-            labels.put(currentLabel, new HashSet<Integer>());
+            labels.put(++currentLabel, new HashSet<Integer>());
         }
 
         void modifyCode(int target) {
@@ -622,8 +640,7 @@ public class Compiler {
         }
 
         void deleteCurrentLabel() {
-            labels.remove(currentLabel);
-            --currentLabel;
+            labels.remove(currentLabel--);
         }
     }
 }

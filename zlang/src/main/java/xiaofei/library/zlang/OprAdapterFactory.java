@@ -86,6 +86,7 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
+            // TODO null check and string
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 + (byte) o2;
