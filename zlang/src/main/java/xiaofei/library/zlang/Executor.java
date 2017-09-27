@@ -10,7 +10,7 @@ class Executor {
 
     static final Object VOID = new Object();
 
-    Executor() {}
+    private Executor() {}
 
     static Object execute(Library inputLibrary, String functionName, Object[] input) {
         Object[] stack = new Object[10];
@@ -38,7 +38,7 @@ class Executor {
                 case STO:
                     stack[base + (int) operand] = stack[top--];
                     break;
-                case INT://// TODO: 2017/9/27
+                case INT:
                     top += (int) operand;
                     break;
                 case JMP:
@@ -62,10 +62,10 @@ class Executor {
                         top -= parameterNumber;
                         Object result = InternalFunctions.call(target, parameters);
                         if (fct == Fct.FUN) {
-                            stack[top++] = result;
+                            stack[++top] = result;
                         }
                     } else {
-                        // What if the function block?
+                        // TODO What if the function block?
                         for (int i = top; i >= top - parameterNumber + 1; --i) {
                             stack[i + 1] = stack[i];
                         }

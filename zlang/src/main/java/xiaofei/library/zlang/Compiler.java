@@ -226,6 +226,9 @@ public class Compiler {
     }
 
     private void addIntoNeededFunctions(String functionName, int parameterNumber) {
+        if (functionName.startsWith("_")) {
+            return;
+        }
         for (FunctionWrapper functionWrapper : mNeededFunctions) {
             if (functionWrapper.functionName.equals(functionName) && functionWrapper.parameterNumber == parameterNumber) {
                 return;
