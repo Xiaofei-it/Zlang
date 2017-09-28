@@ -185,7 +185,7 @@ class InternalFunctions {
                 for (int i = 0; i < length; ++i) {
                     dimensions[i] = (int) input[i + 1];
                 }
-                return java.lang.reflect.Array.newInstance((Class<?>) input[0], dimensions);
+                return java.lang.reflect.Array.newInstance(clazz, dimensions);
             }
         }
     }

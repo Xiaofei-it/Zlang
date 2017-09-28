@@ -668,4 +668,4 @@ class Compiler {
         }
     }
 }
-// TODO change the symbol into enum.  && ||
+// TODO && ||
