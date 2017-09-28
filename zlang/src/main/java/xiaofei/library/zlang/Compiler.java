@@ -48,7 +48,7 @@ class Compiler {
         }
     };
 
-    private static final HashMap<Character, Symbol> CHARACTER_SYMBOL_MAP = new HashMap<Character, Symbol>() {
+    private static final HashMap<Character, Symbol> CHARACTER_SYMBOLS = new HashMap<Character, Symbol>() {
         {
             put(',', Symbol.COMMA);
             put(';', Symbol.SEMICOLON);
@@ -236,7 +236,7 @@ class Compiler {
                 throw new CompilerException(CompilerError.WRONG_SYMBOL, "|");
             }
         } else {
-            nextSymbol = CHARACTER_SYMBOL_MAP.get(nextChar);
+            nextSymbol = CHARACTER_SYMBOLS.get(nextChar);
             if (nextSymbol == null) {
                 throw new CompilerException(CompilerError.WRONG_SYMBOL, Character.toString(nextChar));
             }
