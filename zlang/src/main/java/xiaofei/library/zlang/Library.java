@@ -73,7 +73,7 @@ public class Library {
         }
     }
 
-    void compile() {
+    private void compile() {
         if (codeMap != null) {
             return;
         }
@@ -84,6 +84,7 @@ public class Library {
     Object execute(String functionName, Object[] input) {
         return Executor.execute(this, functionName, input);
     }
+
     String getProgram() {
         return program;
     }
@@ -103,7 +104,7 @@ public class Library {
     void print(String functionName, int parameterNumber) {
         FunctionSearchResult result = get(functionName, parameterNumber);
         if (result == null) {
-            System.out.println("No such function");
+            System.out.println("No such function.");
         } else {
             System.out.println(functionName + " " + parameterNumber);
             int size = result.codes.size();
@@ -114,6 +115,7 @@ public class Library {
             System.out.println("End.");
         }
     }
+
     public static class Builder {
 
         private StringBuilder program;
@@ -139,6 +141,7 @@ public class Library {
             Library library = new Library();
             library.dependencies = dependencies;
             library.program = program.toString();
+            library.compile();
             return library;
         }
     }

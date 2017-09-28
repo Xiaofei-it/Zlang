@@ -1,6 +1,5 @@
 package xiaofei.library.zlang;
 
-import java.lang.reflect.Array;
 import java.util.HashMap;
 
 /**
@@ -20,9 +19,20 @@ class InternalFunctions {
             put("_test_add", functions);
 
             functions = new HashMap<>();
-            functions.put(3, new Array.Set1());
-            functions.put(4, new Array.Set2());
-            put("_array_set", functions);
+            functions.put(2, new ObjectMethods.Equal());
+            put("_equal", functions);
+
+            functions = new HashMap<>();
+            functions.put(2, new ObjectMethods.Compare());
+            put("_compare", functions);
+
+            functions = new HashMap<>();
+            functions.put(1, new ObjectMethods.HashCode());
+            put("_hashcode", functions);
+
+            functions = new HashMap<>();
+            functions.put(1, new ObjectMethods.GetClass());
+            put("_get_class", functions);
 
             functions = new HashMap<>();
             functions.put(3, new Array.Set1());
@@ -65,7 +75,7 @@ class InternalFunctions {
         Object call(Object[] input);
     }
 
-    static class Test {
+    private static class Test {
         private static class Add2 implements Function {
             @Override
             public Object call(Object[] input) {
@@ -80,7 +90,39 @@ class InternalFunctions {
             }
         }
     }
-    static class Array {
+
+    private static class ObjectMethods {
+        private static class Equal implements Function {
+            @Override
+            public Object call(Object[] input) {
+                return input[0].equals(input[1]);
+            }
+        }
+        private static class Compare implements Function {
+            @Override
+            public Object call(Object[] input) {
+                if (input[0] instanceof Comparable) {
+                    return ((Comparable) input[0]).compareTo(input[1]);
+                } else {
+                    throw new IllegalArgumentException(input[0] + " is not a comparable.");
+                }
+            }
+        }
+        private static class HashCode implements Function {
+            @Override
+            public Object call(Object[] input) {
+                return input[0].hashCode();
+            }
+        }
+        private static class GetClass implements Function {
+            @Override
+            public Object call(Object[] input) {
+                return input[0].getClass();
+            }
+        }
+    }
+
+    private static class Array {
         private static class Set1 implements Function {
             @Override
             public Object call(Object[] input) {

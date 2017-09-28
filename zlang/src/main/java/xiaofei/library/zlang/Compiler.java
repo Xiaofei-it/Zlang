@@ -11,7 +11,7 @@ import java.util.Set;
  * Created by Xiaofei on 2017/9/9.
  */
 
-public class Compiler {
+class Compiler {
 
     private static final Set<Character> SPACE_CHARS = new HashSet<Character>() {
         {
@@ -74,7 +74,7 @@ public class Compiler {
 
     private ArrayList<Code> codes;
 
-    public Compiler(Library library) {
+    Compiler(Library library) {
         program = library.getProgram();
         this.library = library;
     }
@@ -121,7 +121,10 @@ public class Compiler {
                 nextSymbol = id;
             } else if (id.equals("true") || id.equals("false")) {
                 nextSymbol = "boolean";
-                nextObject = id;
+                nextObject = id.equals("true");
+            } else if (id.equals("null")) {
+                nextSymbol = "null";
+                nextObject = null;
             } else {
                 nextSymbol = "id";
                 nextObject = id;
@@ -150,7 +153,7 @@ public class Compiler {
         } else if (nextChar == '\'') {
             nextSymbol = "char";
             moveToNextChar();
-            if (nextChar == '~') {
+            if (nextChar == '\\') {
                 moveToNextChar();
             }
             nextObject = nextChar;
@@ -158,11 +161,8 @@ public class Compiler {
             nextSymbol = "string";
             String data = "";
             moveToNextChar();
-            while (true) {
-                if (nextChar == '\"') {
-                    break;
-                }
-                if (nextChar == '~') {
+            while (nextChar != '\"') {
+                if (nextChar == '\\') {
                     moveToNextChar();
                 }
                 data += nextChar;
@@ -277,7 +277,11 @@ public class Compiler {
                 }
                 generateCode(Fct.LOD, address);
             }
-        } else if (nextSymbol.equals("num")) {
+        } else if (nextSymbol.equals("num")
+                || nextSymbol.equals("boolean")
+                || nextSymbol.equals("char")
+                || nextSymbol.equals("string")
+                || nextSymbol.equals("null")) {
             generateCode(Fct.LIT, nextObject);
             moveToNextSymbol();
         } else if (nextSymbol.equals("(")) {
@@ -362,7 +366,6 @@ public class Compiler {
     }
 
     private void statement(boolean inLoop) {
-        //; and {} is right.
         if (nextSymbol.equals(";")) {
             moveToNextSymbol();
         } else if (nextSymbol.equals("id")) {
@@ -644,4 +647,4 @@ public class Compiler {
         }
     }
 }
-// TODO string char true
+// TODO change the symbol into enum.  && ||

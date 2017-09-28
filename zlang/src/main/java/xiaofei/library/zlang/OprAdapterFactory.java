@@ -54,6 +54,9 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object operand = stack[start];
+            if (operand == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
             if (operand instanceof Byte) {
                 return -(byte) operand;
             } else if (operand instanceof Character) {
@@ -86,7 +89,15 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
-            // TODO null check and string
+            if (o1 == null && o2 == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
+            if (o1 instanceof String) {
+                return (String) o1 + o2;
+            }
+            if (o2 instanceof String) {
+                return o1 + (String) o2;
+            }
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 + (byte) o2;
@@ -122,6 +133,9 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
+            if (o1 == null || o2 == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 - (byte) o2;
@@ -155,6 +169,9 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
+            if (o1 == null || o2 == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 * (byte) o2;
@@ -188,6 +205,9 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
+            if (o1 == null || o2 == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 / (byte) o2;
@@ -251,6 +271,9 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
+            if (o1 == null || o2 == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 < (byte) o2;
@@ -284,6 +307,9 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
+            if (o1 == null || o2 == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 <= (byte) o2;
@@ -317,6 +343,9 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
+            if (o1 == null || o2 == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 > (byte) o2;
@@ -350,6 +379,9 @@ class OprAdapterFactory {
         @Override
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
+            if (o1 == null || o2 == null) {
+                throw new NullPointerException("Null is not allowed.");
+            }
             Class<?> clazz = PrimitiveConverter.get(o1, o2);
             if (clazz == Byte.class) {
                 return (byte) o1 >= (byte) o2;

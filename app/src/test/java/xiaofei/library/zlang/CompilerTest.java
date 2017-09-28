@@ -12,7 +12,6 @@ public class CompilerTest {
                         "function f4(b) {a=1;while (b == 1) a= a+ 1;c= a;}" +
                         "function f5() {}")
                 .build();
-        library.compile();
         library.print("f1", 2);
         library.print("f2", 1);
         library.print("f3", 1);
@@ -29,7 +28,6 @@ public class CompilerTest {
                 .addFunctions("function f1(a) {g();}")
                 .addDependency(library1)
                 .build();
-        library2.compile();
         library2.print("f", 1);
         library2.print("g", 0);
         library2.print("f1", 1);
@@ -55,7 +53,6 @@ public class CompilerTest {
                         "}" +
                         "}")
                 .build();
-        library.compile();
         library.print("f", 1);
     }
 
@@ -68,7 +65,6 @@ public class CompilerTest {
                         "return s;" +
                         "}")
                 .build();
-        library.compile();
         library.print("f", 1);
     }
 }

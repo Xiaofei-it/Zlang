@@ -23,8 +23,11 @@ class PrimitiveConverter {
     static Class<?> get(Object o1, Object o2) {
         Class<?> c1 = o1.getClass();
         Class<?> c2 = o2.getClass();
-        int i1 = PRIMITIVE_INT.get(c1);
-        int i2 = PRIMITIVE_INT.get(c2);
+        Integer i1 = PRIMITIVE_INT.get(c1);
+        Integer i2 = PRIMITIVE_INT.get(c2);
+        if (i1 == null || i2 == null) {
+            throw new IllegalArgumentException("Current operation does not support " + o1 + " or " + o2);
+        }
         if (i1 < i2) {
             return c2;
         } else if (i1 > i2) {

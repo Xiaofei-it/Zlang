@@ -13,7 +13,6 @@ public class ExecutorTest {
                 .addFunctions("function f2(a, b) {return a + b;}")
                 .addFunctions("function f3(a) {return f2(a + 1, a - 1);}")
                 .build();
-        library.compile();
         library.print("f3", 1);
         System.out.println(library.execute("f1", new Object[]{100, 3}));
         System.out.println(library.execute("f1", new Object[]{0, 3}));
@@ -26,7 +25,6 @@ public class ExecutorTest {
         Library library = new Library.Builder()
                 .addFunctions("function f(a) {b = _test_add(a, a - 1); return _test_add(b, a/3, a);}")
                 .build();
-        library.compile();
         library.print("f", 1);
         System.out.println(library.execute("f", new Object[]{100}));//199 + 100 + 33
     }
