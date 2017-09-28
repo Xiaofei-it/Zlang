@@ -28,4 +28,20 @@ public class ExecutorTest {
         library.print("f", 1);
         System.out.println(library.execute("f", new Object[]{100}));//199 + 100 + 33
     }
+
+    @Test
+    public void test3() throws Exception {
+        Library library = new Library.Builder()
+                .addFunctions("function f(a) {if (a) return \"t\\\"\"; else return \"j\" + 'k';}")
+                .addFunctions("function f1(a) {if (a == true) return null; else return 2;}")
+                .addFunctions("function f2(a) {if (a) return 't'; else return 1;}")
+                .build();
+        library.print("f1", 1);
+        System.out.println(library.execute("f1", new Object[]{true}));
+        System.out.println(library.execute("f1", new Object[]{false}));
+        System.out.println(library.execute("f2", new Object[]{true}));
+        System.out.println(library.execute("f2", new Object[]{false}));
+        System.out.println(library.execute("f", new Object[]{true}));
+        System.out.println(library.execute("f", new Object[]{false}));
+    }
 }

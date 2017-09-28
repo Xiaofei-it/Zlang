@@ -157,6 +157,8 @@ class Compiler {
                 moveToNextChar();
             }
             nextObject = nextChar;
+            moveToNextChar();
+            moveToNextChar();
         } else if (nextChar == '\"') {
             nextSymbol = "string";
             String data = "";
@@ -169,6 +171,7 @@ class Compiler {
                 moveToNextChar();
             }
             nextObject = data;
+            moveToNextChar();
         } else if (nextChar == '<') {
             moveToNextChar();
             if (nextChar == '=') {
