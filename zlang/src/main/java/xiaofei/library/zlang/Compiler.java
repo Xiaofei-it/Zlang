@@ -1,5 +1,7 @@
 package xiaofei.library.zlang;
 
+import com.sun.xml.internal.bind.v2.model.core.ID;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,30 +23,44 @@ class Compiler {
         }
     };
 
-    private static final Set<String> RESERVED_WORDS = new HashSet<String>() {
+    private static final HashMap<String, Symbol> RESERVED_WORDS_SYMBOLS = new HashMap<String, Symbol>() {
         {
-            add("END");
-            add("function");
-            add("if");
-            add("else");
-            add("while");
-            add("for");
-            add("to");
-            add("step");
-            add("break");
-            add("continue");
-            add("return");
+            put("END", Symbol.END);
+            put("function", Symbol.FUNCTION);
+            put("if", Symbol.IF);
+            put("else", Symbol.ELSE);
+            put("while", Symbol.WHILE);
+            put("for", Symbol.FOR);
+            put("to", Symbol.TO);
+            put("step", Symbol.STEP);
+            put("break", Symbol.BREAK);
+            put("continue",Symbol.CONTINUE);
+            put("return", Symbol.RETURN);
         }
     };
 
-    private static final Set<String> LEADING_WORDS = new HashSet<String>() {
+    private static final HashSet<Symbol> LEADING_WORDS = new HashSet<Symbol>() {
         {
-            add("if");
-            add("while");
-            add("for");
-            add("break");
-            add("continue");
-            add("return");
+            add(Symbol.IF);
+            add(Symbol.WHILE);
+            add(Symbol.FOR);
+            add(Symbol.BREAK);
+            add(Symbol.CONTINUE);
+            add(Symbol.RETURN);
+        }
+    };
+
+    private static final HashMap<Character, Symbol> CHARACTER_SYMBOL_MAP = new HashMap<Character, Symbol>() {
+        {
+            put(',', Symbol.COMMA);
+            put('(', Symbol.LEFT_PARENTHESIS);
+            put(')', Symbol.RIGHT_PARENTHESIS);
+            put('{', Symbol.LEFT_BRACE);
+            put('}', Symbol.RIGHT_BRACE);
+            put('+', Symbol.PLUS);
+            put('-', Symbol.MINUS);
+            put('*', Symbol.TIMES);
+            put('/', Symbol.DIVIDE);
         }
     };
 
@@ -52,7 +68,7 @@ class Compiler {
 
     private char nextChar = ' '; // After read, this points to the next char to read.
 
-    private String nextSymbol; // After read, this points to the next symbol to read.
+    private Symbol nextSymbol; // After read, this points to the next symbol to read.
 
     private Object nextObject;
 
@@ -117,20 +133,20 @@ class Compiler {
                 id = id + nextChar;
                 moveToNextChar();
             } while (isAlpha(nextChar) || isDigit(nextChar));
-            if (RESERVED_WORDS.contains(id)) {
-                nextSymbol = id;
+            if (RESERVED_WORDS_SYMBOLS.containsKey(id)) {
+                nextSymbol = RESERVED_WORDS_SYMBOLS.get(id);
             } else if (id.equals("true") || id.equals("false")) {
-                nextSymbol = "boolean";
+                nextSymbol = Symbol.BOOLEAN;
                 nextObject = id.equals("true");
             } else if (id.equals("null")) {
-                nextSymbol = "null";
+                nextSymbol = Symbol.NULL;
                 nextObject = null;
             } else {
-                nextSymbol = "id";
+                nextSymbol = Symbol.ID;
                 nextObject = id;
             }
         } else if (isDigit(nextChar)) {
-            nextSymbol = "num";
+            nextSymbol = Symbol.NUMBER;
             int intNum = nextChar - '0';
             moveToNextChar();
             while (isDigit(nextChar)) {
@@ -151,7 +167,7 @@ class Compiler {
                 nextObject = intNum;
             }
         } else if (nextChar == '\'') {
-            nextSymbol = "char";
+            nextSymbol = Symbol.CHARACTER;
             moveToNextChar();
             if (nextChar == '\\') {
                 moveToNextChar();
@@ -160,7 +176,7 @@ class Compiler {
             moveToNextChar();
             moveToNextChar();
         } else if (nextChar == '\"') {
-            nextSymbol = "string";
+            nextSymbol = Symbol.STRING;
             String data = "";
             moveToNextChar();
             while (nextChar != '\"') {
@@ -175,39 +191,39 @@ class Compiler {
         } else if (nextChar == '<') {
             moveToNextChar();
             if (nextChar == '=') {
-                nextSymbol = "<=";
+                nextSymbol = Symbol.LESS_EQUAL;
                 moveToNextChar();
             } else {
-                nextSymbol = "<";
+                nextSymbol = Symbol.LESS;
             }
         } else if (nextChar == '>') {
             moveToNextChar();
             if (nextChar == '=') {
-                nextSymbol = ">=";
+                nextSymbol = Symbol.GREATER_EQUAL;
                 moveToNextChar();
             } else {
-                nextSymbol = ">";
+                nextSymbol = Symbol.GREATER;
             }
         } else if (nextChar == '=') {
             moveToNextChar();
             if (nextChar == '=') {
-                nextSymbol = "==";
+                nextSymbol = Symbol.EQUAL;
                 moveToNextChar();
             } else {
-                nextSymbol = "=";
+                nextSymbol = Symbol.ASSIGN;
             }
         } else if (nextChar == '!') {
             moveToNextChar();
             if (nextChar == '=') {
-                nextSymbol = "!=";
+                nextSymbol = Symbol.NOT_EQUAL;
                 moveToNextChar();
             } else {
-                nextSymbol = "!";
+                nextSymbol = Symbol.NOT;
             }
         } else if (nextChar == '&') {
             moveToNextChar();
             if (nextChar == '&') {
-                nextSymbol = "&&";
+                nextSymbol = Symbol.AND;
                 moveToNextChar();
             } else {
                 throw new CompilerException(CompilerError.WRONG_SYMBOL, "&");
@@ -215,14 +231,16 @@ class Compiler {
         } else if (nextChar == '|') {
             moveToNextChar();
             if (nextChar == '|') {
-                nextSymbol = "||";
+                nextSymbol = Symbol.OR;
                 moveToNextChar();
             } else {
                 throw new CompilerException(CompilerError.WRONG_SYMBOL, "|");
             }
         } else {
-            // , (  )
-            nextSymbol = Character.toString(nextChar);
+            nextSymbol = CHARACTER_SYMBOL_MAP.get(nextChar);
+            if (nextSymbol == null) {
+                throw new CompilerException(CompilerError.WRONG_SYMBOL, Character.toString(nextChar));
+            }
             moveToNextChar();
         }
     }
@@ -239,12 +257,12 @@ class Compiler {
     private int callFunction() {
         int parameterNumber = 0;
         moveToNextSymbol();
-        while (!nextSymbol.equals(")")) {
+        while (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
             simpleExpression();
             ++parameterNumber;
-            if (nextSymbol.equals(",")) {
+            if (nextSymbol == Symbol.COMMA) {
                 moveToNextSymbol();
-            } else if (!nextSymbol.equals(")")) {
+            } else if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')' or ','");
             }
         }
@@ -266,10 +284,10 @@ class Compiler {
     }
 
     private void factor() {
-        if (nextSymbol.equals("id")) {
+        if (nextSymbol == Symbol.ID) {
             String id = (String) nextObject;
             moveToNextSymbol();
-            if (nextSymbol.equals("(")) {
+            if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
                 int parameterNumber = callFunction();
                 generateCode(Fct.FUN, id);// add a label to indicate we should not ignore the return value.
                 addIntoNeededFunctions(id, parameterNumber);
@@ -280,66 +298,66 @@ class Compiler {
                 }
                 generateCode(Fct.LOD, address);
             }
-        } else if (nextSymbol.equals("num")
-                || nextSymbol.equals("boolean")
-                || nextSymbol.equals("char")
-                || nextSymbol.equals("string")
-                || nextSymbol.equals("null")) {
+        } else if (nextSymbol == Symbol.NUMBER
+                || nextSymbol == Symbol.BOOLEAN
+                || nextSymbol == Symbol.CHARACTER
+                || nextSymbol == Symbol.STRING
+                || nextSymbol == Symbol.NULL) {
             generateCode(Fct.LIT, nextObject);
             moveToNextSymbol();
-        } else if (nextSymbol.equals("(")) {
+        } else if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
             moveToNextSymbol();
             expression();
-            if (nextSymbol.equals(")")) {
+            if (nextSymbol == Symbol.RIGHT_PARENTHESIS) {
                 moveToNextSymbol();
             } else {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')'");
             }
-        } else if (nextSymbol.equals("!")) {
+        } else if (nextSymbol == Symbol.NOT) {
             moveToNextSymbol();
             factor();
             generateCode(Fct.OPR, Opr.NOT);
         } else {
-            throw new CompilerException(CompilerError.WRONG_SYMBOL, nextSymbol);
+            throw new CompilerException(CompilerError.WRONG_SYMBOL, nextSymbol.toString());
         }
     }
 
     private void term() {
         factor();
-        while (nextSymbol.equals("*") || nextSymbol.equals("/") || nextSymbol.equals("&&")) {
-            String op = nextSymbol;
+        while (nextSymbol == Symbol.TIMES || nextSymbol == Symbol.DIVIDE || nextSymbol == Symbol.AND) {
+            Symbol op = nextSymbol;
             moveToNextSymbol();
             factor();
-            if (op.equals("*")) {
+            if (op == Symbol.TIMES) {
                 generateCode(Fct.OPR, Opr.TIMES);
-            } else if (op.equals("/")) {
+            } else if (op == Symbol.DIVIDE) {
                 generateCode(Fct.OPR, Opr.DIVIDE);
-            } else if (op.equals("&&")) {
+            } else if (op == Symbol.AND) {
                 generateCode(Fct.OPR, Opr.AND);
             }
         }
     }
 
     private void simpleExpression() {
-        if (nextSymbol.equals("+") || nextSymbol.equals("-")) {
-            String op = nextSymbol;
+        if (nextSymbol == Symbol.PLUS || nextSymbol == Symbol.MINUS) {
+            Symbol op = nextSymbol;
             moveToNextSymbol();
             term();
-            if (op.equals("-")) {
+            if (op == Symbol.MINUS) {
                 generateCode(Fct.OPR, Opr.NEGATIVE);
             }
         } else {
             term();
         }
-        while (nextSymbol.equals("+") || nextSymbol.equals("-") || nextSymbol.equals("||")) {
-            String op =nextSymbol;
+        while (nextSymbol == Symbol.PLUS || nextSymbol == Symbol.MINUS || nextSymbol == Symbol.OR) {
+            Symbol op =nextSymbol;
             moveToNextSymbol();
             term();
-            if (op.equals("+")) {
+            if (op == Symbol.PLUS) {
                 generateCode(Fct.OPR, Opr.PLUS);
-            } else if (op.equals("-")) {
+            } else if (op == Symbol.MINUS) {
                 generateCode(Fct.OPR, Opr.MINUS);
-            } else if (op.equals("||")) {
+            } else if (op == Symbol.OR) {
                 generateCode(Fct.OPR, Opr.OR);
             }
         }
@@ -347,34 +365,35 @@ class Compiler {
 
     private void expression() {
         simpleExpression();
-        if (nextSymbol.equals("==") || nextSymbol.equals("!=") || nextSymbol.equals("<")
-                || nextSymbol.equals(">") || nextSymbol.equals("<=") || nextSymbol.equals(">=")) {
-            String op = nextSymbol;
+        if (nextSymbol == Symbol.EQUAL || nextSymbol == Symbol.NOT_EQUAL
+                || nextSymbol == Symbol.LESS || nextSymbol == Symbol.LESS_EQUAL
+                || nextSymbol == Symbol.GREATER || nextSymbol == Symbol.GREATER_EQUAL) {
+            Symbol op = nextSymbol;
             moveToNextSymbol();
             simpleExpression();
-            if (op.equals("==")) {
+            if (op == Symbol.EQUAL) {
                 generateCode(Fct.OPR, Opr.EQUAL);
-            } else if (op.equals("!=")) {
+            } else if (op == Symbol.NOT_EQUAL) {
                 generateCode(Fct.OPR, Opr.NOT_EQUAL);
-            } else if (op.equals("<")) {
+            } else if (op == Symbol.LESS) {
                 generateCode(Fct.OPR, Opr.LESS);
-            } else if (op.equals("<=")) {
+            } else if (op == Symbol.LESS_EQUAL) {
                 generateCode(Fct.OPR, Opr.LESS_EQUAL);
-            } else if (op.equals(">")) {
+            } else if (op == Symbol.GREATER) {
                 generateCode(Fct.OPR, Opr.GREATER);
-            } else if (op.equals(">=")) {
+            } else if (op == Symbol.GREATER_EQUAL) {
                 generateCode(Fct.OPR, Opr.GREATER_EQUAL);
             }
         }
     }
 
     private void statement(boolean inLoop) {
-        if (nextSymbol.equals(";")) {
+        if (nextSymbol == Symbol.SEMICOLON) {
             moveToNextSymbol();
-        } else if (nextSymbol.equals("id")) {
+        } else if (nextSymbol == Symbol.ID) {
             moveToNextSymbol();
             String id = (String) nextObject;
-            if (nextSymbol.equals("=")) {
+            if (nextSymbol == Symbol.ASSIGN) {
                 Integer address = symbolTable.get(id);
                 if (address == null) {
                     symbolTable.put(id, address = ++offset);
@@ -382,25 +401,25 @@ class Compiler {
                 moveToNextSymbol();
                 expression();
                 generateCode(Fct.STO, address);
-            } else if (nextSymbol.equals("(")) {
+            } else if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
                 int parameterNumber = callFunction();
                 generateCode(Fct.PROC, id);
                 addIntoNeededFunctions(id, parameterNumber);
             } else {
                 throw new CompilerException(CompilerError.ASSIGN_OR_CALL_FUNCTION_ERROR);
             }
-            if (!nextSymbol.equals(";")) {
+            if (nextSymbol != Symbol.SEMICOLON) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
             moveToNextSymbol();
-        } else if (nextSymbol.equals("if")) {
+        } else if (nextSymbol == Symbol.IF) {
             moveToNextSymbol();
-            if (!nextSymbol.equals("(")) {
+            if (nextSymbol != Symbol.LEFT_PARENTHESIS) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "'('");
             }
             moveToNextSymbol();
             expression();
-            if (!nextSymbol.equals(")")) {
+            if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')'");
             }
             moveToNextSymbol();
@@ -408,7 +427,7 @@ class Compiler {
             int tmp = codeIndex;
             statement(inLoop);
             modifyCodeOperand(tmp, codeIndex + 1);
-            if (nextSymbol.equals("else")) {
+            if (nextSymbol == Symbol.ELSE) {
                 modifyCodeOperand(tmp, codeIndex + 2);
                 generateCode(Fct.JMP, 0);
                 tmp = codeIndex;
@@ -416,33 +435,33 @@ class Compiler {
                 statement(inLoop);
                 modifyCodeOperand(tmp, codeIndex + 1);
             }
-        } else if (nextSymbol.equals("{")) {
+        } else if (nextSymbol == Symbol.LEFT_BRACE) {
             moveToNextSymbol();
             statement(inLoop);
-            while (nextSymbol.equals("{") || LEADING_WORDS.contains(nextSymbol) || nextSymbol.equals("id")) {
-                String tmp = nextSymbol;
+            while (nextSymbol == Symbol.LEFT_BRACE || LEADING_WORDS.contains(nextSymbol) || nextSymbol == Symbol.ID) {
+                Symbol tmp = nextSymbol;
                 statement(inLoop);
-                if (tmp.equals("{")) {
-                    if (nextSymbol.equals("}")) {
+                if (tmp == Symbol.LEFT_BRACE) {
+                    if (nextSymbol == Symbol.RIGHT_BRACE) {
                         moveToNextSymbol();
                     } else {
                         throw new CompilerException(CompilerError.MISSING_SYMBOL, "}");
                     }
                 }
             }
-            if (!nextSymbol.equals("}")) {
+            if (nextSymbol != Symbol.RIGHT_BRACE) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "'}'");
             }
             moveToNextSymbol();
-        } else if (nextSymbol.equals("while")) {
+        } else if (nextSymbol == Symbol.WHILE) {
             int tmp1 = codeIndex + 1;
             moveToNextSymbol();
-            if (!nextSymbol.equals("(")) {
+            if (nextSymbol != Symbol.LEFT_PARENTHESIS) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "'('");
             }
             moveToNextSymbol();
             expression();
-            if (!nextSymbol.equals(")")) {
+            if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')'");
             }
             moveToNextSymbol();
@@ -457,20 +476,20 @@ class Compiler {
             breakRecorder.deleteCurrentLabel();
             continueRecorder.modifyCode(tmp1);
             continueRecorder.deleteCurrentLabel();
-        } else if (nextSymbol.equals("break")) {
+        } else if (nextSymbol == Symbol.BREAK) {
             if (!inLoop) {
                 throw new CompilerException(CompilerError.BREAK_ERROR);
             }
             generateCode(Fct.JMP, 0);
             breakRecorder.addCode(codeIndex);
             moveToNextSymbol();
-            if (!nextSymbol.equals(";")) {
+            if (nextSymbol != Symbol.SEMICOLON) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
             moveToNextSymbol();
-        } else if (nextSymbol.equals("for")) {//for j=a to b step c
+        } else if (nextSymbol == Symbol.FOR) {//for j=a to b step c
             moveToNextSymbol();
-            if (!nextSymbol.equals("id")) {
+            if (nextSymbol != Symbol.ID) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "ID");
             }
             String id = (String) nextObject;
@@ -479,14 +498,14 @@ class Compiler {
                 symbolTable.put(id, address = ++offset);
             }
             moveToNextSymbol();
-            if (!nextSymbol.equals("=")) {
+            if (nextSymbol != Symbol.ASSIGN) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "=");
             }
             moveToNextSymbol();
             simpleExpression();
             generateCode(Fct.STO, address);
             int tmp1 = codeIndex + 1;
-            if (!nextSymbol.equals("to")) {
+            if (nextSymbol != Symbol.TO) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "to");
             }
             moveToNextSymbol();
@@ -498,7 +517,7 @@ class Compiler {
             generateCode(Fct.JMP, 0);
             int tmp3 = codeIndex;
             int tmp4 = codeIndex + 1;
-            if (!nextSymbol.equals("step")) {
+            if (nextSymbol != Symbol.STEP) {
                 throw new CompilerException(CompilerError.FOR_ERROR, "step");
             }
             moveToNextSymbol();
@@ -517,26 +536,26 @@ class Compiler {
             breakRecorder.deleteCurrentLabel();
             continueRecorder.modifyCode(tmp4);
             continueRecorder.deleteCurrentLabel();
-        } else if (nextSymbol.equals("continue")) {
+        } else if (nextSymbol == Symbol.CONTINUE) {
             if (!inLoop) {
                 throw new CompilerException(CompilerError.CONTINUE_ERROR);
             }
             generateCode(Fct.JMP, 0);
             continueRecorder.addCode(codeIndex);
             moveToNextSymbol();
-            if (!nextSymbol.equals(";")) {
+            if (nextSymbol != Symbol.SEMICOLON) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
             moveToNextSymbol();
-        } else if (nextSymbol.equals("return")) {
+        } else if (nextSymbol == Symbol.RETURN) {
             moveToNextSymbol();
-            if (!nextSymbol.equals(";")) {
+            if (nextSymbol != Symbol.SEMICOLON) {
                 expression();
                 generateCode(Fct.FUN_RETURN, 0);
             } else {
                 generateCode(Fct.VOID_RETURN, 0);
             }
-            if (!nextSymbol.equals(";")) {
+            if (nextSymbol != Symbol.SEMICOLON) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "';'");
             }
             moveToNextSymbol();
@@ -552,11 +571,11 @@ class Compiler {
         if (nextSymbol == null) {
             moveToNextSymbol();
         }
-        if (!nextSymbol.equals("function")) {
+        if (nextSymbol != Symbol.FUNCTION) {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "function");
         }
         moveToNextSymbol();
-        if (nextSymbol.equals("id")) {
+        if (nextSymbol == Symbol.ID) {
             moveToNextSymbol();
         } else {
             throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "ID");
@@ -564,13 +583,13 @@ class Compiler {
         String functionName = (String) nextObject;
         int parameterNumber = 0;
         offset = -1;
-        if (nextSymbol.equals("(")) {
+        if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
             moveToNextSymbol();
         } else {
             throw new CompilerException(CompilerError.MISSING_SYMBOL, "'('");
         }
-        while (!nextSymbol.equals(")")) {
-            if (!nextSymbol.equals("id")) {
+        while (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
+            if (nextSymbol != Symbol.ID) {
                 throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "parameter");
             }
             String id = (String) nextObject;
@@ -578,10 +597,10 @@ class Compiler {
             ++offset;
             symbolTable.put(id, offset);
             moveToNextSymbol();
-            if (!nextSymbol.equals(")") && !nextSymbol.equals(",")) {
+            if (nextSymbol != Symbol.LEFT_PARENTHESIS && nextSymbol != Symbol.COMMA) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')' or ','");
             }
-            if (nextSymbol.equals(",")) {
+            if (nextSymbol == Symbol.COMMA) {
                 moveToNextSymbol();
             }
         }
@@ -598,9 +617,9 @@ class Compiler {
         program += "END ";
         do {
             function();
-            if (nextSymbol.equals("END")) {
+            if (nextSymbol == Symbol.END) {
                 break;
-            } else if (!nextSymbol.equals("function")) {
+            } else if (nextSymbol != Symbol.FUNCTION) {
                 throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "function");
             }
         } while (true);
