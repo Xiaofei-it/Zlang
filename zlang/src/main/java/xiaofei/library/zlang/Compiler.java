@@ -1,7 +1,5 @@
 package xiaofei.library.zlang;
 
-import com.sun.xml.internal.bind.v2.model.core.ID;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,6 +51,7 @@ class Compiler {
     private static final HashMap<Character, Symbol> CHARACTER_SYMBOL_MAP = new HashMap<Character, Symbol>() {
         {
             put(',', Symbol.COMMA);
+            put(';', Symbol.SEMICOLON);
             put('(', Symbol.LEFT_PARENTHESIS);
             put(')', Symbol.RIGHT_PARENTHESIS);
             put('{', Symbol.LEFT_BRACE);
@@ -597,7 +596,7 @@ class Compiler {
             ++offset;
             symbolTable.put(id, offset);
             moveToNextSymbol();
-            if (nextSymbol != Symbol.LEFT_PARENTHESIS && nextSymbol != Symbol.COMMA) {
+            if (nextSymbol != Symbol.RIGHT_PARENTHESIS && nextSymbol != Symbol.COMMA) {
                 throw new CompilerException(CompilerError.MISSING_SYMBOL, "')' or ','");
             }
             if (nextSymbol == Symbol.COMMA) {
