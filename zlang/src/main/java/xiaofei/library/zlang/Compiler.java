@@ -622,7 +622,7 @@ class Compiler {
                 throw new CompilerException(CompilerError.FUNCTION_DECLARATION_ERROR, "function");
             }
         } while (true);
-        library.compileDependencies();
+//        library.compileDependencies();
         for (FunctionWrapper functionWrapper : mNeededFunctions) {
             if (!library.containsFunction(functionWrapper.functionName, functionWrapper.parameterNumber)) {
                 throw new CompilerException(CompilerError.UNDEFINED_FUNCTION,

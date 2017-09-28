@@ -88,12 +88,12 @@ public class Library {
     String getProgram() {
         return program;
     }
-
-    void compileDependencies() {
-        for (Library library : dependencies) {
-            library.compile();
-        }
-    }
+//
+//    void compileDependencies() {
+//        for (Library library : dependencies) {
+//            library.compile();
+//        }
+//    }
 
     /**
      * For unit test only!
