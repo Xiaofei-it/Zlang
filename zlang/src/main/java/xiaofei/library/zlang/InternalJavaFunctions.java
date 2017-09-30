@@ -1,21 +1,15 @@
 package xiaofei.library.zlang;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-
 /**
  * Created by Xiaofei on 2017/9/21.
  */
 
-class InternalFunctions {
-    private static final HashMap<String, HashMap<Integer, Function>> FIXED_ARGS_FUNCTIONS
-            = new HashMap<String, HashMap<Integer, Function>>();
+class InternalJavaFunctions extends JavaLibrary {
 
-    private static final HashMap<String, LinkedList<Function>> VAR_ARGS_FUNCTIONS
-            = new HashMap<String, LinkedList<Function>>();
+    static final InternalJavaFunctions INSTANCE = new InternalJavaFunctions();
 
-    static {
-        Function[] functions = new Function[]{
+    private InternalJavaFunctions() {
+        addFunctions(new JavaFunction[]{
                 new Test.Add2(),
                 new Test.Add3(),
 
@@ -51,56 +45,11 @@ class InternalFunctions {
                 new Clazz.IsMemberClass(),
                 new Clazz.IsInterface(),
                 new Clazz.NewInstance(),
-        };
-        for (Function function : functions) {
-            String name = function.getFunctionName();
-            if (function.isVarArgs()) {
-                LinkedList<Function> list = VAR_ARGS_FUNCTIONS.get(name);
-                if (list == null) {
-                    list = new LinkedList<>();
-                    VAR_ARGS_FUNCTIONS.put(name, list);
-                }
-                list.add(function);
-            } else {
-                HashMap<Integer, Function> map = FIXED_ARGS_FUNCTIONS.get(name);
-                if (map == null) {
-                    map = new HashMap<>();
-                    FIXED_ARGS_FUNCTIONS.put(name, map);
-                }
-                map.put(function.getParameterNumber(), function);
-            }
-        }
-    }
-
-    static Object call(String functionName, Object[] input) {
-        HashMap<Integer, Function> functionMap = FIXED_ARGS_FUNCTIONS.get(functionName);
-        if (functionMap != null) {
-            Function function = functionMap.get(input.length);
-            if (function != null) {
-                return function.call(input);
-            }
-        }
-        LinkedList<Function> functionList = VAR_ARGS_FUNCTIONS.get(functionName);
-        if (functionList == null) {
-            throw new IllegalArgumentException("Function " + functionName + " does not exist.");
-        }
-        for (Function function : functionList) {
-            if (input.length >= function.getParameterNumber()) {
-                return function.call(input);
-            }
-        }
-        throw new IllegalArgumentException("Function " + functionName + " does not have " + input.length + " parameter(s).");
-    }
-
-    private interface Function {
-        boolean isVarArgs();
-        int getParameterNumber();
-        String getFunctionName();
-        Object call(Object[] input);
+        });
     }
 
     private static class Test {
-        private static class Add2 implements Function {
+        private static class Add2 implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -122,7 +71,7 @@ class InternalFunctions {
             }
         }
 
-        private static class Add3 implements Function {
+        private static class Add3 implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -145,7 +94,7 @@ class InternalFunctions {
     }
 
     private static class ObjectMethods {
-        private static class Equal implements Function {
+        private static class Equal implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -165,7 +114,7 @@ class InternalFunctions {
                 return input[0].equals(input[1]);
             }
         }
-        private static class Compare implements Function {
+        private static class Compare implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -189,7 +138,7 @@ class InternalFunctions {
                 }
             }
         }
-        private static class HashCode implements Function {
+        private static class HashCode implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -209,7 +158,7 @@ class InternalFunctions {
                 return input[0].hashCode();
             }
         }
-        private static class GetClass implements Function {
+        private static class GetClass implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -232,7 +181,7 @@ class InternalFunctions {
     }
 
     private static class Array {
-        private static class Get implements Function {
+        private static class Get implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return true;
@@ -258,7 +207,7 @@ class InternalFunctions {
             }
         }
 
-        private static class Set implements Function {
+        private static class Set implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -286,7 +235,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetLength implements Function {
+        private static class GetLength implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -307,7 +256,7 @@ class InternalFunctions {
             }
         }
 
-        private static class NewInstance implements Function {
+        private static class NewInstance implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return true;
@@ -339,7 +288,7 @@ class InternalFunctions {
     }
 
     private static class Clazz {
-        private static class ClassCast implements Function {
+        private static class ClassCast implements JavaFunction {
             @Override
             public int getParameterNumber() {
                 return 2;
@@ -360,7 +309,7 @@ class InternalFunctions {
             }
         }
 
-        private static class ForName implements Function {
+        private static class ForName implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -386,7 +335,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetName implements Function {
+        private static class GetName implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -408,7 +357,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetSimpleName implements Function {
+        private static class GetSimpleName implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -430,7 +379,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetCanonicalName implements Function {
+        private static class GetCanonicalName implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -452,7 +401,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetConstructor  implements Function {
+        private static class GetConstructor  implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return true;
@@ -483,7 +432,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetDeclaredConstructor implements Function {
+        private static class GetDeclaredConstructor implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return true;
@@ -514,7 +463,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetField implements Function {
+        private static class GetField implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -540,7 +489,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetDeclaredField implements Function {
+        private static class GetDeclaredField implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -566,7 +515,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetMethod implements Function {
+        private static class GetMethod implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return true;
@@ -598,7 +547,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetDeclaredMethod implements Function {
+        private static class GetDeclaredMethod implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return true;
@@ -630,7 +579,7 @@ class InternalFunctions {
             }
         }
 
-        private static class GetSuperclass implements Function {
+        private static class GetSuperclass implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -652,7 +601,7 @@ class InternalFunctions {
             }
         }
 
-        private static class IsAnonymousClass implements Function {
+        private static class IsAnonymousClass implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -674,7 +623,7 @@ class InternalFunctions {
             }
         }
 
-        private static class IsArray implements Function {
+        private static class IsArray implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -696,7 +645,7 @@ class InternalFunctions {
             }
         }
 
-        private static class IsAssignableFrom implements Function {
+        private static class IsAssignableFrom implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -718,7 +667,7 @@ class InternalFunctions {
             }
         }
 
-        private static class IsEnum implements Function {
+        private static class IsEnum implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -740,7 +689,7 @@ class InternalFunctions {
             }
         }
 
-        private static class InstanceOf implements Function {
+        private static class InstanceOf implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -762,7 +711,7 @@ class InternalFunctions {
             }
         }
 
-        private static class IsInterface implements Function {
+        private static class IsInterface implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -784,7 +733,7 @@ class InternalFunctions {
             }
         }
 
-        private static class IsLocalClass implements Function {
+        private static class IsLocalClass implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -806,7 +755,7 @@ class InternalFunctions {
             }
         }
 
-        private static class IsMemberClass implements Function {
+        private static class IsMemberClass implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -828,7 +777,7 @@ class InternalFunctions {
             }
         }
 
-        private static class IsPrimitive implements Function {
+        private static class IsPrimitive implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -850,7 +799,7 @@ class InternalFunctions {
             }
         }
 
-        private static class NewInstance implements Function {
+        private static class NewInstance implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;

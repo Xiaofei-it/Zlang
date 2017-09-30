@@ -14,7 +14,7 @@ class Executor {
 
     static Object execute(Library inputLibrary, String functionName, Object[] input) {
         Object[] stack = new Object[10];
-        Library.FunctionSearchResult functionSearchResult = inputLibrary.get(functionName, input.length);
+        Library.FunctionSearchResult functionSearchResult = inputLibrary.getFunction(functionName, input.length);
         ArrayList<Code> codes = functionSearchResult.codes;
         Library library = functionSearchResult.library;
         stack[0] = new Frame(0, -1, null, null, true);
@@ -53,14 +53,15 @@ class Executor {
                 case PROC: {
                     String target = (String) operand;
                     int parameterNumber = (int) stack[top--];
-                    if (target.startsWith("_")) {
+                    JavaFunction javaFunction = library.getJavaFunction(target, parameterNumber);
+                    if (javaFunction != null) {
                         Object[] parameters = new Object[parameterNumber];
                         // 0 -> top - num + 1, num - 1 -> top
                         for (int i = 0; i < parameterNumber; ++i) {
                             parameters[i] = stack[top - parameterNumber + 1 + i];
                         }
                         top -= parameterNumber;
-                        Object result = InternalFunctions.call(target, parameters);
+                        Object result = javaFunction.call(parameters);
                         if (fct == Fct.FUN) {
                             stack[++top] = result;
                         }
@@ -71,7 +72,7 @@ class Executor {
                         }
                         stack[top = top - parameterNumber + 1] = new Frame(base, pos, codes, library, fct == Fct.FUN);
                         base = top + 1;
-                        Library.FunctionSearchResult result = library.get(target, parameterNumber);
+                        Library.FunctionSearchResult result = library.getFunction(target, parameterNumber);
                         library = result.library;
                         codes = result.codes;
                         pos = 0;

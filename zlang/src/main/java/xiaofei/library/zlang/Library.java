@@ -11,12 +11,15 @@ public class Library {
 
     private ArrayList<Library> dependencies;
 
+    private ArrayList<JavaLibrary> javaDependencies;
+
     private HashMap<String, HashMap<Integer, ArrayList<Code>>> codeMap;
 
     private String program;
 
     private Library() {
         dependencies = null;
+        javaDependencies = null;
         codeMap = null;
         program = null;
     }
@@ -41,7 +44,23 @@ public class Library {
         return contain;
     }
 
-    FunctionSearchResult get(String functionName, int parameterNumber) {
+    JavaFunction getJavaFunction(String functionName, int parameter) {
+        for (JavaLibrary javaLibrary : javaDependencies) {
+            JavaFunction function = javaLibrary.get(functionName, parameter);
+            if (function != null) {
+                return function;
+            }
+        }
+        for (Library library : dependencies) {
+            JavaFunction function = library.getJavaFunction(functionName, parameter);
+            if (function != null) {
+                return function;
+            }
+        }
+        return null;
+    }
+
+    FunctionSearchResult getFunction(String functionName, int parameterNumber) {
         if (codeMap == null) {
             throw new CompilerException(null);
         }
@@ -54,7 +73,7 @@ public class Library {
             return new FunctionSearchResult(this, code);
         }
         for (Library library : dependencies) {
-            FunctionSearchResult result  = library.get(functionName, parameterNumber);
+            FunctionSearchResult result  = library.getFunction(functionName, parameterNumber);
             if (result != null) {
                 return result;
             }
@@ -102,7 +121,7 @@ public class Library {
      * @param parameterNumber
      */
     void print(String functionName, int parameterNumber) {
-        FunctionSearchResult result = get(functionName, parameterNumber);
+        FunctionSearchResult result = getFunction(functionName, parameterNumber);
         if (result == null) {
             System.out.println("No such function.");
         } else {
@@ -122,9 +141,12 @@ public class Library {
 
         private ArrayList<Library> dependencies;
 
+        private ArrayList<JavaLibrary> javaDependencies;
+
         public Builder() {
             program = new StringBuilder();
             dependencies = new ArrayList<>();
+            javaDependencies = new ArrayList<>();
         }
 
         public Builder addFunctions(String functions) {
@@ -137,9 +159,18 @@ public class Library {
             return this;
         }
 
+        public Builder addJavaDependency(JavaLibrary library) {
+            javaDependencies.add(library);
+            return this;
+        }
+
         public Library build() {
             Library library = new Library();
             library.dependencies = dependencies;
+            ArrayList<JavaLibrary> javaLibraries = new ArrayList<>();
+            javaLibraries.add(InternalJavaFunctions.INSTANCE);
+            javaLibraries.addAll(javaDependencies);
+            library.javaDependencies = javaLibraries;
             library.program = program.toString();
             library.compile();
             return library;
