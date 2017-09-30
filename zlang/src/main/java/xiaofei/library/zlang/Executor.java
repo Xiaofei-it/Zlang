@@ -17,7 +17,7 @@ class Executor {
         Library.FunctionSearchResult functionSearchResult = inputLibrary.getFunction(functionName, input.length);
         ArrayList<Code> codes = functionSearchResult.codes;
         Library library = functionSearchResult.library;
-        stack[0] = new Frame(0, -1, null, null, true);
+        stack[0] = new Frame(0, -1, null, null, false);
         int length = input.length;
         for (int i = 0; i < length; ++i) {
             stack[i + 1] = input[i];
@@ -86,7 +86,12 @@ class Executor {
                     base = frame.base;
                     library = frame.dependency;
                     codes = frame.codes;
-                    stack[top] = returnValue;
+                    // TODO check
+                    if (frame.isFunction) {
+                        stack[top] = returnValue;
+                    } else {
+                        --top;
+                    }
                     break;
                 }
                 case VOID_RETURN: {
@@ -96,6 +101,11 @@ class Executor {
                     base = frame.base;
                     library = frame.dependency;
                     codes = frame.codes;
+                    if (frame.isFunction) {
+                        throw new IllegalStateException("");
+                    } else {
+                        --top;
+                    }
                     break;
                 }
                 case OPR: {

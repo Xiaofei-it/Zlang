@@ -3,7 +3,7 @@ package xiaofei.library.zlang;
 /**
  * Created by Xiaofei on 2017/9/30.
  */
-interface JavaFunction {
+public interface JavaFunction {
     boolean isVarArgs();
 
     int getParameterNumber();

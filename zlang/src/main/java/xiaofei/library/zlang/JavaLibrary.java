@@ -27,7 +27,7 @@ public class JavaLibrary {
         }
         LinkedList<JavaFunction> functionList = varArgsFunctions.get(functionName);
         if (functionList == null) {
-            throw new IllegalArgumentException("Function " + functionName + " does not exist.");
+            return null;
         }
         for (JavaFunction function : functionList) {
             if (parameterNumber >= function.getParameterNumber()) {
