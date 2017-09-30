@@ -1,5 +1,9 @@
 package xiaofei.library.zlang;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
 /**
  * Created by Xiaofei on 2017/9/21.
  */
@@ -45,6 +49,23 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Clazz.IsMemberClass(),
                 new Clazz.IsInterface(),
                 new Clazz.NewInstance(),
+
+                new Map.ContainsKey(),
+                new Map.ContainsValue(),
+                new Map.Get(),
+                new Map.Put(),
+
+                new List.Get(),
+                new List.Set(),
+
+                new Collection.Add(),
+                new Collection.IsEmpty(),
+                new Collection.NewList(),
+                new Collection.NewMap(),
+                new Collection.NewSet(),
+                new Collection.Remove(),
+                new Collection.Size(),
+
         });
     }
 
@@ -828,7 +849,335 @@ class InternalJavaFunctions extends JavaLibrary {
         }
     }
 
+    private static class Field {
 
+    }
 
+    private static class Method {
+
+    }
+
+    private static class Constructor {
+
+    }
+
+    private static class List {
+        private static class Get implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_list_get";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((java.util.List) input[0]).get((int) input[1]);
+            }
+        }
+
+        private static class Set implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 3;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_list_set";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                ((java.util.List) input[0]).set((int) input[1], input[2]);
+                return null;
+            }
+        }
+    }
+
+    private static class Map {
+        private static class Put implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 3;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_map_put";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                ((java.util.Map) input[0]).put(input[1], input[2]);
+                return null;
+            }
+        }
+
+        private static class Get implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_map_get";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                ((java.util.Map) input[0]).get(input[1]);
+                return null;
+            }
+        }
+
+        private static class ContainsKey implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_map_get";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                ((java.util.Map) input[0]).containsKey(input[1]);
+                return null;
+            }
+        }
+
+        private static class ContainsValue implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_map_get";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                ((java.util.Map) input[0]).containsValue(input[1]);
+                return null;
+            }
+        }
+    }
+
+    private static class Collection {
+        private static class NewSet implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 0;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_new_set";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return new HashSet<>();
+            }
+        }
+
+        private static class NewMap implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 0;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_new_map";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return new HashMap<>();
+            }
+        }
+
+        private static class NewList implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 0;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_new_list";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return new ArrayList<>();
+            }
+        }
+
+        private static class Size implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_size";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Object o = input[0];
+                if (o instanceof java.util.Map) {
+                    return ((java.util.Map) o).size();
+                }
+                if (o instanceof java.util.Collection) {
+                    return ((java.util.Collection) o).size();
+                }
+                throw new IllegalArgumentException();
+            }
+        }
+
+        private static class IsEmpty implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_empty";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Object o = input[0];
+                if (o instanceof java.util.Map) {
+                    return ((java.util.Map) o).isEmpty();
+                }
+                if (o instanceof java.util.Collection) {
+                    return ((java.util.Collection) o).isEmpty();
+                }
+                throw new IllegalArgumentException();
+            }
+        }
+
+        private static class Add implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_add";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Object o = input[0];
+                if (o instanceof java.util.Collection) {
+                    return ((java.util.Collection) o).add(input[1]);
+                }
+                throw new IllegalArgumentException();
+            }
+        }
+
+        private static class Remove implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_empty";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Object o = input[0];
+                if (o instanceof java.util.Collection) {
+                    return ((java.util.Collection) o).remove(input[1]);
+                }
+                throw new IllegalArgumentException();
+            }
+        }
+    }
     // TODO annotation
 }
