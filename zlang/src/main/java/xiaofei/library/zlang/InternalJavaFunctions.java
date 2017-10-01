@@ -2,6 +2,7 @@ package xiaofei.library.zlang;
 
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +52,23 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Clazz.IsMemberClass(),
                 new Clazz.IsInterface(),
                 new Clazz.NewInstance(),
+                new Clazz.GetEnclosingClass(),
+                new Clazz.GetDeclaringClass(),
+                new Clazz.GetEnclosingMethod(),
+
+                new Method.GetName(),
+                new Method.GetReturnType(),
+                new Method.GetParameterTypes(),
+                new Method.Invoke(),
+
+                new Field.Get(),
+                new Field.Set(),
+                new Field.GetName(),
+                new Field.GetType(),
+
+                new Constructor.GetName(),
+                new Constructor.GetParameterTypes(),
+                new Constructor.NewInstance(),
 
                 new Map.ContainsKey(),
                 new Map.ContainsValue(),
@@ -852,18 +870,363 @@ class InternalJavaFunctions extends JavaLibrary {
                 }
             }
         }
+
+        private static class GetEnclosingClass implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_get_enclosing_class";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((Class<?>) input[0]).getEnclosingClass();
+            }
+        }
+
+        private static class GetDeclaringClass implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_get_declaring_class";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((Class<?>) input[0]).getDeclaringClass();
+            }
+        }
+
+        private static class GetEnclosingMethod implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_get_enclosing_method";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((Class<?>) input[0]).getEnclosingMethod();
+            }
+        }
     }
 
     private static class Field {
 
+        private static class GetName implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_field_name";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((java.lang.reflect.Field) input[0]).getName();
+            }
+        }
+
+        private static class GetType implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_field_type";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((java.lang.reflect.Field) input[0]).getType();
+            }
+        }
+
+        private static class Set implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 3;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_field_set";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                try {
+                    java.lang.reflect.Field field = (java.lang.reflect.Field) input[0];
+                    field.setAccessible(true);
+                    field.set(input[1], input[2]);
+                    return null;
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+        }
+
+        private static class Get implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_field_get";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                try {
+                    java.lang.reflect.Field field = (java.lang.reflect.Field) input[0];
+                    field.setAccessible(true);
+                    return field.get(input[1]);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+        }
     }
 
     private static class Method {
 
+        private static class GetName implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_method_name";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((java.lang.reflect.Method) input[0]).getName();
+            }
+        }
+
+        private static class GetParameterTypes implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_method_parameter_types";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((java.lang.reflect.Method) input[0]).getParameterTypes();
+            }
+        }
+
+        private static class GetReturnType implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_method_return_type";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((java.lang.reflect.Method) input[0]).getReturnType();
+            }
+        }
+
+        private static class Invoke implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_method_invoke";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                int length = input.length - 2;
+                Object[] parameters = new Object[length];
+                for (int i = 0; i < length; ++i) {
+                    parameters[i] = input[i + 2];
+                }
+                try {
+                    java.lang.reflect.Method method = (java.lang.reflect.Method) input[0];
+                    method.setAccessible(true);
+                    return method.invoke(input[1], parameters);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(e);
+                } catch (InvocationTargetException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+        }
     }
 
     private static class Constructor {
+        private static class GetName implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
 
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_constructor_name";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((java.lang.reflect.Constructor) input[0]).getName();
+            }
+        }
+
+        private static class GetParameterTypes implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_constructor_parameter_types";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return ((java.lang.reflect.Constructor) input[0]).getParameterTypes();
+            }
+        }
+
+        private static class NewInstance implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_constructor_new_instance";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                int length = input.length - 1;
+                Object[] parameters = new Object[length];
+                for (int i = 0; i < length; ++i) {
+                    parameters[i] = input[i + 1];
+                }
+                try {
+                    java.lang.reflect.Constructor constructor = (java.lang.reflect.Constructor) input[0];
+                    constructor.setAccessible(true);
+                    return constructor.newInstance(parameters);
+                } catch (InvocationTargetException e) {
+                    throw new IllegalArgumentException(e);
+                } catch (InstantiationException e) {
+                    throw new IllegalArgumentException(e);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+        }
     }
 
     private static class List {
