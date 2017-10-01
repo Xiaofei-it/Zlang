@@ -23,7 +23,8 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Array.Get(),
                 new Array.GetLength(),
                 new Array.Set(),
-                new Array.NewInstance(),
+                new Array.NewArray(),
+                new Array.ArrayOf(),
 
                 new ObjectMethods.HashCode(),
                 new ObjectMethods.Compare(),
@@ -237,13 +238,21 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "_array_set";
+                return "_array_get";
             }
 
             @Override
             public Object call(Object[] input) {
                 Object array = input[0];
                 int length = input.length;
+                if (length == 2 && input[1] instanceof int[]) {
+                    int[] indexes = (int[]) input[1];
+                    int indexNumber = indexes.length;
+                    for (int i = 0; i <= indexNumber - 2; ++i) {
+                        array = java.lang.reflect.Array.get(array, indexes[i]);
+                    }
+                    return java.lang.reflect.Array.get(array, indexes[indexNumber - 1]);
+                }
                 for (int i = 1; i <= length - 2; ++i) {
                     array = java.lang.reflect.Array.get(array, (int) input[i]);
                 }
@@ -254,7 +263,7 @@ class InternalJavaFunctions extends JavaLibrary {
         private static class Set implements JavaFunction {
             @Override
             public boolean isVarArgs() {
-                return false;
+                return true;
             }
             @Override
             public int getParameterNumber() {
@@ -271,6 +280,15 @@ class InternalJavaFunctions extends JavaLibrary {
                 // array, i, o
                 Object array = input[0];
                 int length = input.length;
+                if (length == 3 && input[1]instanceof int[]) {
+                    int[] indexes = (int[]) input[1];
+                    int indexNumber = indexes.length;
+                    for (int i = 0; i <= indexNumber - 2; ++i) {
+                        array = java.lang.reflect.Array.get(array, indexes[i]);
+                    }
+                    java.lang.reflect.Array.set(array, indexes[indexNumber - 1], input[length - 1]);
+                    return null;
+                }
                 for (int i = 1; i <= length - 3; ++i) {
                     array = java.lang.reflect.Array.get(array, (int) input[i]);
                 }
@@ -300,7 +318,29 @@ class InternalJavaFunctions extends JavaLibrary {
             }
         }
 
-        private static class NewInstance implements JavaFunction {
+
+        private static class ArrayOf implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 0;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_array_of";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input;
+            }
+        }
+
+        private static class NewArray implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return true;
@@ -318,6 +358,9 @@ class InternalJavaFunctions extends JavaLibrary {
             @Override
             public Object call(Object[] input) {
                 Class<?> clazz = (Class<?>) input[0];
+                if (input.length == 2 && input[1] instanceof int[]) {
+                    return java.lang.reflect.Array.newInstance(clazz, (int[]) input[1]);
+                }
                 int length = input.length - 1;
                 if (length == 0) {
                     throw new IllegalArgumentException();
@@ -464,6 +507,13 @@ class InternalJavaFunctions extends JavaLibrary {
             @Override
             public Object call(Object[] input) {
                 int length = input.length;
+                if (length == 2 && input[1] instanceof Class<?>[]) {
+                    try {
+                        return ((Class<?>) input[0]).getConstructor((Class<?>[]) input[1]);
+                    } catch (NoSuchMethodException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                }
                 Class<?>[] classes = new Class<?>[length - 1];
                 for (int i = 0; i < length - 1; ++i) {
                     classes[i] = (Class<?>) input[i + 1];
@@ -495,6 +545,13 @@ class InternalJavaFunctions extends JavaLibrary {
             @Override
             public Object call(Object[] input) {
                 int length = input.length;
+                if (length == 2 && input[1] instanceof Class<?>[]) {
+                    try {
+                        return ((Class<?>) input[0]).getDeclaredConstructor((Class<?>[]) input[1]);
+                    } catch (NoSuchMethodException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                }
                 Class<?>[] classes = new Class<?>[length - 1];
                 for (int i = 0; i < length - 1; ++i) {
                     classes[i] = (Class<?>) input[i + 1];
@@ -579,6 +636,13 @@ class InternalJavaFunctions extends JavaLibrary {
             public Object call(Object[] input) {
                 // class, string, class...
                 int length = input.length;
+                if (length == 3 && input[2] instanceof Class<?>[]) {
+                    try {
+                        return ((Class<?>) input[0]).getMethod((String) input[1], (Class<?>[]) input[2]);
+                    } catch (NoSuchMethodException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                }
                 Class<?>[] classes = new Class<?>[length - 2];
                 for (int i = 0; i < length - 2; ++i) {
                     classes[i] = (Class<?>) input[i + 2];
@@ -611,6 +675,13 @@ class InternalJavaFunctions extends JavaLibrary {
             public Object call(Object[] input) {
                 // class, string, class...
                 int length = input.length;
+                if (length == 3 && input[2] instanceof Class<?>[]) {
+                    try {
+                        return ((Class<?>) input[0]).getDeclaredMethod((String) input[1], (Class<?>[]) input[2]);
+                    } catch (NoSuchMethodException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                }
                 Class<?>[] classes = new Class<?>[length - 2];
                 for (int i = 0; i < length - 2; ++i) {
                     classes[i] = (Class<?>) input[i + 2];
@@ -1129,6 +1200,17 @@ class InternalJavaFunctions extends JavaLibrary {
             @Override
             public Object call(Object[] input) {
                 int length = input.length - 2;
+                if (length == 3 && input[2] instanceof Object[]) {
+                    try {
+                        java.lang.reflect.Method method = (java.lang.reflect.Method) input[0];
+                        method.setAccessible(true);
+                        return method.invoke(input[1], (Object[]) input[2]);
+                    } catch (IllegalAccessException e) {
+                        throw new IllegalArgumentException(e);
+                    } catch (InvocationTargetException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                }
                 Object[] parameters = new Object[length];
                 for (int i = 0; i < length; ++i) {
                     parameters[i] = input[i + 2];
@@ -1210,11 +1292,16 @@ class InternalJavaFunctions extends JavaLibrary {
             @Override
             public Object call(Object[] input) {
                 int length = input.length - 1;
-                Object[] parameters = new Object[length];
-                for (int i = 0; i < length; ++i) {
-                    parameters[i] = input[i + 1];
-                }
                 try {
+                    if (length == 2 && input[1] instanceof Object[]) {
+                        java.lang.reflect.Constructor constructor = (java.lang.reflect.Constructor) input[0];
+                        constructor.setAccessible(true);
+                        return constructor.newInstance((Object[]) input[1]);
+                    }
+                    Object[] parameters = new Object[length];
+                    for (int i = 0; i < length; ++i) {
+                        parameters[i] = input[i + 1];
+                    }
                     java.lang.reflect.Constructor constructor = (java.lang.reflect.Constructor) input[0];
                     constructor.setAccessible(true);
                     return constructor.newInstance(parameters);
