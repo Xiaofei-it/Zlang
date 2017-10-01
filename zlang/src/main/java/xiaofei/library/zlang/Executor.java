@@ -13,7 +13,7 @@ class Executor {
     private Executor() {}
 
     static Object execute(Library inputLibrary, String functionName, Object[] input) {
-        Object[] stack = new Object[10];
+        Object[] stack = new Object[1000];
         Library.FunctionSearchResult functionSearchResult = inputLibrary.getFunction(functionName, input.length);
         ArrayList<Code> codes = functionSearchResult.codes;
         Library library = functionSearchResult.library;

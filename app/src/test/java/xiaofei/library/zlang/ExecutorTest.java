@@ -44,4 +44,30 @@ public class ExecutorTest {
         System.out.println(library.execute("f", new Object[]{true}));
         System.out.println(library.execute("f", new Object[]{false}));
     }
+
+    private static final class TestA {
+        String f(String s) {
+            return "s=" + s;
+        }
+    }
+    @Test
+    public void test4() {
+        Library library = new Library.Builder()
+                .addFunctions(
+                        "function new_instance(className) {" +
+                                "class = _for_name(className); if (class == null) return null;" +
+                                "cons = _class_get_declared_constructor(class);" +
+                                "return _constructor_new_instance(cons);}")
+                .addFunctions(
+                        "function call_function(className) {" +
+                                "class = _for_name(className);" +
+                                "object = new_instance(className);" +
+                                "method = _class_get_declared_method(class, \"f\", _for_name(\"java.lang.String\"));" +
+                                "return _method_invoke(method, object, \"kkk\");}"
+                )
+                .build();
+        library.print("new_instance", 1);
+        System.out.println(library.execute("new_instance", new Object[]{TestA.class.getName()}));
+        System.out.println(library.execute("call_function", new Object[]{TestA.class.getName()}));
+    }
 }
