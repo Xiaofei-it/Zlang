@@ -1,5 +1,7 @@
 package xiaofei.library.zlang;
 
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,6 +67,9 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Collection.NewSet(),
                 new Collection.Remove(),
                 new Collection.Size(),
+
+                new Reference.SoftRef(),
+                new Reference.WeakRef(),
 
         });
     }
@@ -1178,6 +1183,53 @@ class InternalJavaFunctions extends JavaLibrary {
                 throw new IllegalArgumentException();
             }
         }
+    }
+
+    private static class Reference {
+        private static class WeakRef implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_weak_ref";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return new WeakReference<>(input[0]);
+            }
+        }
+
+        private static class SoftRef implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_soft_ref";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return new SoftReference<>(input[0]);
+            }
+        }
+
     }
     // TODO annotation
 }
