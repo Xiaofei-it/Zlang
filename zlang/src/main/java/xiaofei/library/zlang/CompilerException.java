@@ -6,24 +6,25 @@ package xiaofei.library.zlang;
 
 public class CompilerException extends RuntimeException {
 
-    private CompilerError error;
+    public final CompilerError error;
 
-    private String message;
+    public final String message;
 
-    public CompilerException(CompilerError error) {
-        this(error, null);
+    public final int lineNumber;
+
+    public final int start;
+
+    public final int end;
+
+    public CompilerException(CompilerError error, int lineNumber, int start, int end) {
+        this(error, lineNumber, start, end, null);
     }
 
-    public CompilerException(CompilerError error,String message) {
+    public CompilerException(CompilerError error, int lineNumber, int start, int end, String message) {
         this.error = error;
         this.message = message;
-    }
-
-    public CompilerError getError() {
-        return error;
-    }
-
-    public String getMessage() {
-        return message;
+        this.lineNumber = lineNumber;
+        this.start = start;
+        this.end = end;
     }
 }

@@ -5,6 +5,7 @@ package xiaofei.library.zlang;
  */
 
 public enum CompilerError {
+    NOT_COMPILED,
     INCOMPLETE_PROGRAM,
     WRONG_SYMBOL,
     UNINITIALIZED_VARIABLE,
@@ -15,5 +16,5 @@ public enum CompilerError {
     CONTINUE_ERROR,
     FOR_ERROR,
     FUNCTION_DECLARATION_ERROR,
-
+    FUNCTION_ALREADY_EXIST,
 }

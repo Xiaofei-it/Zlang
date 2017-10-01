@@ -26,7 +26,7 @@ public class Library {
 
     boolean containsFunction(String functionName, int parameterNumber) {
         if (codeMap == null) {
-            throw new CompilerException(null);
+            throw new CompilerException(CompilerError.NOT_COMPILED, -1, -1, -1);
         }
         boolean contain = false;
         HashMap<Integer, ArrayList<Code>> codes = codeMap.get(functionName);
@@ -62,7 +62,7 @@ public class Library {
 
     FunctionSearchResult getFunction(String functionName, int parameterNumber) {
         if (codeMap == null) {
-            throw new CompilerException(null);
+            throw new CompilerException(CompilerError.NOT_COMPILED, -1, -1, -1);
         }
         HashMap<Integer, ArrayList<Code>> codes = codeMap.get(functionName);
         ArrayList<Code> code = null;
@@ -88,7 +88,8 @@ public class Library {
             codeMap.put(functionName, codes);
         }
         if (codes.put(parameterNumber, codesToPut) != null) {
-            throw new CompilerException(null);
+            throw new CompilerException(CompilerError.FUNCTION_ALREADY_EXIST, -1, -1, -1,
+                    "function name: " + functionName + " parameter number: " + parameterNumber);
         }
     }
 

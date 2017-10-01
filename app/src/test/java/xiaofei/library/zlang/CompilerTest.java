@@ -67,4 +67,73 @@ public class CompilerTest {
                 .build();
         library.print("f", 1);
     }
+
+    @Test
+    public void test5() throws Exception {
+        try {
+            Library library = new Library.Builder()
+                    .addFunctions("function f(a) {\n" +
+                            "s = 0;\n" +
+                            "for i = 0 to 100 step 1 {\n" +
+                            " s = s + i;\n" +
+                            "if (s > 100)\n" +
+                            "break;\n" +
+                            "else continue;" +
+                            "\n}\n" +
+                            "return s}\n" +
+                            "")
+                    .build();
+            library.print("f", 1);
+        } catch (CompilerException e) {
+            System.out.println(e.error + " " + e.lineNumber + " " + e.start + " " + e.end + " " + e.message);
+            // MISSING_SYMBOL 10 9 -1 ';'
+        }
+
+        try {
+            Library library = new Library.Builder()
+                    .addFunctions("function f(a) {\n" +
+                            "s = 0;\n" +
+                            "for i = 0 to 100 step 1 {\n" +
+                            " s = s + i;\n" +
+                            "if (s > 100)\n" +
+                            "break;\n\n" +
+                            "else continue;" +
+                            "\n}\n" +
+                            "return s}\n" +
+                            "")
+                    .build();
+            library.print("f", 1);
+        } catch (CompilerException e) {
+            System.out.println(e.error + " " + e.lineNumber + " " + e.start + " " + e.end + " " + e.message);
+            // MISSING_SYMBOL 11 9 -1 ';'
+        }
+
+        try {
+            Library library = new Library.Builder()
+                    .addFunctions("function f(a) {\n" +
+                            "s = 0;\n" +
+                            "for i = 0 to 100 step 1 {\n" +
+                            " s = s + i;\n" +
+                            "if (s > 100\n" +
+                            "break;\n" +
+                            "else continue;" +
+                            "\n}\n" +
+                            "return s;}\n" +
+                            "")
+                    .build();
+            library.print("f", 1);
+        } catch (CompilerException e) {
+            System.out.println(e.error + " " + e.lineNumber + " " + e.start + " " + e.end + " " + e.message);
+        }
+
+        try {
+            Library library = new Library.Builder()
+                    .addFunctions("")
+                    .build();
+            library.print("f", 1);
+        } catch (CompilerException e) {
+            System.out.println(e.error + " " + e.lineNumber + " " + e.start + " " + e.end + " " + e.message);
+            // MISSING_SYMBOL 10 9 -1 ';'
+        }
+    }
 }
