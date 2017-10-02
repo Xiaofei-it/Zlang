@@ -70,4 +70,34 @@ public class ExecutorTest {
         System.out.println(library.execute("new_instance", new Object[]{TestA.class.getName()}));
         System.out.println(library.execute("call_function", new Object[]{TestA.class.getName()}));
     }
+
+    @Test
+    public void test5() {
+        Library library = new Library.Builder()
+                .addFunctions(
+                        "function check(array, x) {" +
+                                "len = _array_length(array);" +
+                                "for i = 0 to len - 1 step 1 {" +
+                                "  if (_equal(_array_get(array, i), x)) {" +
+                                "      return i;" +
+                                "  }" +
+                                "}" +
+                                "  return -1;" +
+                                "}")
+                .addFunctions(
+                        "function plus(array) {" +
+                                "len = _array_length(array);" +
+                                "result = \"\";" +
+                                "for i = 0 to len - 1 step 1 {" +
+                                "  result = result + _array_get(array,i);" +
+                                "  }" +
+                                "  return result;" +
+                                "}")
+                .build();
+        library.print("check", 2);
+        System.out.println(library.execute("check", new Object[]{new String[]{"ab", "cd", "e"}, "e"}));
+        System.out.println(library.execute("check", new Object[]{new String[]{"ab", "cd", "e"}, "abc"}));
+        library.print("plus", 1);
+        System.out.println(library.execute("plus", new Object[]{new String[]{"ab", "cd", "e"}}));
+    }
 }
