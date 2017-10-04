@@ -17,7 +17,7 @@ public class JavaLibrary {
 
     }
 
-    public JavaFunction get(String functionName, int parameterNumber) {
+    JavaFunction get(String functionName, int parameterNumber) {
         HashMap<Integer, JavaFunction> functionMap = fixedArgsFunctions.get(functionName);
         if (functionMap != null) {
             JavaFunction function = functionMap.get(parameterNumber);

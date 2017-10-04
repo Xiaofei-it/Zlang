@@ -927,7 +927,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "_new_instance";
+                return "_class_new_instance";
             }
 
             @Override
