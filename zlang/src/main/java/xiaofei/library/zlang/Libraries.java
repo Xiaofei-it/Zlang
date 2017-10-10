@@ -1,6 +1,7 @@
 package xiaofei.library.zlang;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -9,6 +10,21 @@ import java.lang.reflect.Method;
  */
 
 public final class Libraries {
+
+    public static final JavaLibrary REFLECTION_UTILS = new JavaLibrary() {
+        {
+            addFunctions(new JavaFunction[]{
+                    new NewInstance(),
+                    new NewInstancePublic(),
+                    new MethodInvocation(),
+                    new PublicMethodInvocation(),
+                    new FieldGetter(),
+                    new PublicFieldGetter(),
+                    new FieldSetter(),
+                    new PublicFieldSetter(),
+            });
+        }
+    };
 
     private Libraries() {}
 
@@ -250,6 +266,166 @@ public final class Libraries {
             } catch (IllegalAccessException e) {
                 throw new IllegalArgumentException(e);
             } catch (InvocationTargetException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+    }
+
+    private static class FieldGetter implements JavaFunction {
+        @Override
+        public boolean isVarArgs() {
+            return false;
+        }
+
+        @Override
+        public int getParameterNumber() {
+            return 2;
+        }
+
+        @Override
+        public String getFunctionName() {
+            return "get_field";
+        }
+
+        @Override
+        public Object call(Object[] input) {
+            Class<?> clazz = input[0].getClass();
+            String name = (String) input[1];
+            Field field = null;
+            do {
+                try {
+                    field = clazz.getDeclaredField(name);
+                } catch (NoSuchFieldException e) {
+
+                }
+                if (clazz != Object.class) {
+                    clazz = clazz.getSuperclass();
+                }
+            } while (field == null && clazz != Object.class);
+            if (field == null) {
+                throw new IllegalArgumentException();
+            }
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+            }
+            try {
+                return field.get(input[0]);
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException();
+            }
+        }
+    }
+
+    private static class PublicFieldGetter implements JavaFunction {
+        @Override
+        public boolean isVarArgs() {
+            return false;
+        }
+
+        @Override
+        public int getParameterNumber() {
+            return 2;
+        }
+
+        @Override
+        public String getFunctionName() {
+            return "get_field";
+        }
+
+        @Override
+        public Object call(Object[] input) {
+            Class<?> clazz = input[0].getClass();
+            String name = (String) input[1];
+            try {
+                Field field = clazz.getField(name);
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                return field.get(input[0]);
+            } catch (NoSuchFieldException e) {
+                throw new IllegalArgumentException(e);
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+    }
+
+    private static class FieldSetter implements JavaFunction {
+        @Override
+        public boolean isVarArgs() {
+            return false;
+        }
+
+        @Override
+        public int getParameterNumber() {
+            return 3;
+        }
+
+        @Override
+        public String getFunctionName() {
+            return "set_field";
+        }
+
+        @Override
+        public Object call(Object[] input) {
+            Class<?> clazz = input[0].getClass();
+            String name = (String) input[1];
+            Field field = null;
+            do {
+                try {
+                    field = clazz.getDeclaredField(name);
+                } catch (NoSuchFieldException e) {
+
+                }
+                if (clazz != Object.class) {
+                    clazz = clazz.getSuperclass();
+                }
+            } while (field == null && clazz != Object.class);
+            if (field == null) {
+                throw new IllegalArgumentException();
+            }
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+            }
+            try {
+                field.set(input[0], input[2]);
+                return null;
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException();
+            }
+        }
+    }
+
+    private static class PublicFieldSetter implements JavaFunction {
+        @Override
+        public boolean isVarArgs() {
+            return false;
+        }
+
+        @Override
+        public int getParameterNumber() {
+            return 3;
+        }
+
+        @Override
+        public String getFunctionName() {
+            return "set_field";
+        }
+
+        @Override
+        public Object call(Object[] input) {
+            Class<?> clazz = input[0].getClass();
+            String name = (String) input[1];
+            try {
+                Field field = clazz.getField(name);
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                field.set(input[0], input[2]);
+                return null;
+            } catch (NoSuchFieldException e) {
+                throw new IllegalArgumentException(e);
+            } catch (IllegalAccessException e) {
                 throw new IllegalArgumentException(e);
             }
         }
