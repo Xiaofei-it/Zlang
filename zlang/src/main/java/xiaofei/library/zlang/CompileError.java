@@ -4,7 +4,7 @@ package xiaofei.library.zlang;
  * Created by Xiaofei on 2017/9/13.
  */
 
-public enum CompilerError {
+public enum CompileError {
     NOT_COMPILED,
     INCOMPLETE_PROGRAM,
     WRONG_SYMBOL,

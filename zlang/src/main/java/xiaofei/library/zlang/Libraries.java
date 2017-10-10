@@ -71,7 +71,7 @@ public final class Libraries {
                 }
             }
             if (foundConstructor == null) {
-                throw new IllegalArgumentException();
+                throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, "Class: " + input[0] + " Parameter number: " + length);
             }
             if (!foundConstructor.isAccessible()) {
                 foundConstructor.setAccessible(true);
@@ -79,11 +79,11 @@ public final class Libraries {
             try {
                  return foundConstructor.newInstance(parameters);
             } catch (InstantiationException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
             } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
             }
         }
     }
@@ -131,7 +131,7 @@ public final class Libraries {
                 }
             }
             if (foundConstructor == null) {
-                throw new IllegalArgumentException();
+                throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, "Class: " + input[0] + " Parameter number: " + length);
             }
             if (!foundConstructor.isAccessible()) {
                 foundConstructor.setAccessible(true);
@@ -139,11 +139,11 @@ public final class Libraries {
             try {
                 return foundConstructor.newInstance(parameters);
             } catch (InstantiationException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
             } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
             }
         }
     }
@@ -167,15 +167,19 @@ public final class Libraries {
         @Override
         public Object call(Object[] input) {
             Class<?> clazz = input[0].getClass();
+            String methodName = (String) input[1];
             int length = input.length - 2;
             Object[] parameters = new Object[length];
             if (length >= 1) {
-                System.arraycopy(input, 1, parameters, 0, length);
+                System.arraycopy(input, 2, parameters, 0, length);
             }
             Method foundMethod = null;
             do {
                 Method[] methods = clazz.getDeclaredMethods();
                 for (Method method : methods) {
+                    if (!method.getName().equals(methodName)) {
+                        continue;
+                    }
                     Class<?>[] parameterTypes = method.getParameterTypes();
                     if (parameterTypes.length != length) {
                         continue;
@@ -197,7 +201,8 @@ public final class Libraries {
                 }
             } while (foundMethod != null && clazz != Object.class);
             if (foundMethod == null) {
-                throw new IllegalArgumentException();
+                throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD,
+                        "Class: " + input[0] + " Method name: "  + methodName + " Parameter number: " + length);
             }
             if (!foundMethod.isAccessible()) {
                 foundMethod.setAccessible(true);
@@ -205,9 +210,9 @@ public final class Libraries {
             try {
                 return foundMethod.invoke(input[0], parameters);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
             } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
             }
         }
     }
@@ -231,6 +236,7 @@ public final class Libraries {
         @Override
         public Object call(Object[] input) {
             Class<?> clazz = input[0].getClass();
+            String methodName = (String) input[1];
             int length = input.length - 2;
             Object[] parameters = new Object[length];
             if (length >= 1) {
@@ -239,6 +245,9 @@ public final class Libraries {
             Method foundMethod = null;
             Method[] methods = clazz.getMethods();
             for (Method method : methods) {
+                if (!method.getName().equals(methodName)) {
+                    continue;
+                }
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (parameterTypes.length != length) {
                     continue;
@@ -256,7 +265,8 @@ public final class Libraries {
                 }
             }
             if (foundMethod == null) {
-                throw new IllegalArgumentException();
+                throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD,
+                        "Class: " + input[0] + " Method name: "  + methodName + " Parameter number: " + length);
             }
             if (!foundMethod.isAccessible()) {
                 foundMethod.setAccessible(true);
@@ -264,9 +274,9 @@ public final class Libraries {
             try {
                 return foundMethod.invoke(input[0], parameters);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
             } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
             }
         }
     }
@@ -303,7 +313,8 @@ public final class Libraries {
                 }
             } while (field == null && clazz != Object.class);
             if (field == null) {
-                throw new IllegalArgumentException();
+                throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                        "Class: " + input[0] + " Field name : " + name);
             }
             if (!field.isAccessible()) {
                 field.setAccessible(true);
@@ -311,7 +322,7 @@ public final class Libraries {
             try {
                 return field.get(input[0]);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException();
+                throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
             }
         }
     }
@@ -336,16 +347,18 @@ public final class Libraries {
         public Object call(Object[] input) {
             Class<?> clazz = input[0].getClass();
             String name = (String) input[1];
+            Field field = null;
             try {
-                Field field = clazz.getField(name);
+                field = clazz.getField(name);
                 if (!field.isAccessible()) {
                     field.setAccessible(true);
                 }
                 return field.get(input[0]);
             } catch (NoSuchFieldException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                        "Class: " + input[0] + " Field name : " + name);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
             }
         }
     }
@@ -382,7 +395,8 @@ public final class Libraries {
                 }
             } while (field == null && clazz != Object.class);
             if (field == null) {
-                throw new IllegalArgumentException();
+                throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                        "Class: " + input[0] + " Field name : " + name);
             }
             if (!field.isAccessible()) {
                 field.setAccessible(true);
@@ -391,7 +405,7 @@ public final class Libraries {
                 field.set(input[0], input[2]);
                 return null;
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException();
+                throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
             }
         }
     }
@@ -416,17 +430,19 @@ public final class Libraries {
         public Object call(Object[] input) {
             Class<?> clazz = input[0].getClass();
             String name = (String) input[1];
+            Field field = null;
             try {
-                Field field = clazz.getField(name);
+                field = clazz.getField(name);
                 if (!field.isAccessible()) {
                     field.setAccessible(true);
                 }
                 field.set(input[0], input[2]);
                 return null;
             } catch (NoSuchFieldException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                        "Class: " + input[0] + " Field name : " + name);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(e);
+                throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
             }
         }
     }

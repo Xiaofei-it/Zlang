@@ -102,7 +102,7 @@ class Executor {
                     library = frame.dependency;
                     codes = frame.codes;
                     if (frame.isFunction) {
-                        throw new IllegalStateException("");
+                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_RETURN_VALUE);
                     } else {
                         --top;
                     }
@@ -116,7 +116,7 @@ class Executor {
                     break;
                 }
                 default:
-                    throw new IllegalStateException("Illegal enum: " + fct);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.UNKNOWN_OPERATION, fct.toString());
             }
         } while (pos != -1);
         return returnValue;

@@ -4,9 +4,9 @@ package xiaofei.library.zlang;
  * Created by Xiaofei on 2017/9/13.
  */
 
-public class CompilerException extends RuntimeException {
+public class CompileException extends RuntimeException {
 
-    public final CompilerError error;
+    public final CompileError error;
 
     public final String message;
 
@@ -16,11 +16,11 @@ public class CompilerException extends RuntimeException {
 
     public final int end;
 
-    public CompilerException(CompilerError error, int lineNumber, int start, int end) {
+    CompileException(CompileError error, int lineNumber, int start, int end) {
         this(error, lineNumber, start, end, null);
     }
 
-    public CompilerException(CompilerError error, int lineNumber, int start, int end, String message) {
+    CompileException(CompileError error, int lineNumber, int start, int end, String message) {
         this.error = error;
         this.message = message;
         this.lineNumber = lineNumber;

@@ -84,7 +84,7 @@ public class CompilerTest {
                             "")
                     .build();
             library.print("f", 1);
-        } catch (CompilerException e) {
+        } catch (CompileException e) {
             System.out.println(e.error + " " + e.lineNumber + " " + e.start + " " + e.end + " " + e.message);
             // MISSING_SYMBOL 10 9 -1 ';'
         }
@@ -103,7 +103,7 @@ public class CompilerTest {
                             "")
                     .build();
             library.print("f", 1);
-        } catch (CompilerException e) {
+        } catch (CompileException e) {
             System.out.println(e.error + " " + e.lineNumber + " " + e.start + " " + e.end + " " + e.message);
             // MISSING_SYMBOL 11 9 -1 ';'
         }
@@ -122,7 +122,7 @@ public class CompilerTest {
                             "")
                     .build();
             library.print("f", 1);
-        } catch (CompilerException e) {
+        } catch (CompileException e) {
             System.out.println(e.error + " " + e.lineNumber + " " + e.start + " " + e.end + " " + e.message);
         }
 
@@ -131,7 +131,7 @@ public class CompilerTest {
                     .addFunctions("")
                     .build();
             library.print("f", 1);
-        } catch (CompilerException e) {
+        } catch (CompileException e) {
             System.out.println(e.error + " " + e.lineNumber + " " + e.start + " " + e.end + " " + e.message);
             // MISSING_SYMBOL 10 9 -1 ';'
         }

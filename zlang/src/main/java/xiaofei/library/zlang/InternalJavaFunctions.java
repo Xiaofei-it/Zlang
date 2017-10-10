@@ -52,7 +52,6 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Clazz.IsPrimitive(),
                 new Clazz.IsMemberClass(),
                 new Clazz.IsInterface(),
-                new Clazz.NewInstance(),
                 new Clazz.GetEnclosingClass(),
                 new Clazz.GetDeclaringClass(),
                 new Clazz.GetEnclosingMethod(),
@@ -179,7 +178,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (input[0] instanceof Comparable) {
                     return ((Comparable) input[0]).compareTo(input[1]);
                 } else {
-                    throw new IllegalArgumentException(input[0] + " is not a comparable.");
+                    throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, input[0] + " is not a comparable.");
                 }
             }
         }
@@ -363,7 +362,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 }
                 int length = input.length - 1;
                 if (length == 0) {
-                    throw new IllegalArgumentException();
+                    throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "No dimensions specified.");
                 }
                 int[] dimensions = new int[length];
                 for (int i = 0; i < length; ++i) {
@@ -417,7 +416,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 try {
                     return Class.forName((String) input[0]);
                 } catch (ClassNotFoundException e) {
-                    throw new IllegalArgumentException("Class not found: " + input[0], e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.CLASS_NOT_FOUND, input[0].toString());
                 }
             }
         }
@@ -511,7 +510,7 @@ class InternalJavaFunctions extends JavaLibrary {
                     try {
                         return ((Class<?>) input[0]).getConstructor((Class<?>[]) input[1]);
                     } catch (NoSuchMethodException e) {
-                        throw new IllegalArgumentException(e);
+                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, input[0].toString());
                     }
                 }
                 Class<?>[] classes = new Class<?>[length - 1];
@@ -521,7 +520,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 try {
                     return ((Class<?>) input[0]).getConstructor(classes);
                 } catch (NoSuchMethodException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, input[0].toString());
                 }
             }
         }
@@ -549,7 +548,7 @@ class InternalJavaFunctions extends JavaLibrary {
                     try {
                         return ((Class<?>) input[0]).getDeclaredConstructor((Class<?>[]) input[1]);
                     } catch (NoSuchMethodException e) {
-                        throw new IllegalArgumentException(e);
+                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, input[0].toString());
                     }
                 }
                 Class<?>[] classes = new Class<?>[length - 1];
@@ -559,7 +558,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 try {
                     return ((Class<?>) input[0]).getDeclaredConstructor(classes);
                 } catch (NoSuchMethodException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, input[0].toString());
                 }
             }
         }
@@ -585,7 +584,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 try {
                     return ((Class<?>) input[0]).getField((String) input[1]);
                 } catch (NoSuchFieldException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD, "Class: " + input[0] + " Field: " + input[1]);
                 }
             }
         }
@@ -611,7 +610,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 try {
                     return ((Class<?>) input[0]).getDeclaredField((String) input[1]);
                 } catch (NoSuchFieldException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD, "Class: " + input[0] + " Field: " + input[1]);
                 }
             }
         }
@@ -640,7 +639,7 @@ class InternalJavaFunctions extends JavaLibrary {
                     try {
                         return ((Class<?>) input[0]).getMethod((String) input[1], (Class<?>[]) input[2]);
                     } catch (NoSuchMethodException e) {
-                        throw new IllegalArgumentException(e);
+                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD, "Class: " + input[0] + " Method: " + input[1]);
                     }
                 }
                 Class<?>[] classes = new Class<?>[length - 2];
@@ -650,7 +649,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 try {
                     return ((Class<?>) input[0]).getMethod((String) input[1], classes);
                 } catch (NoSuchMethodException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD, "Class: " + input[0] + " Method: " + input[1]);
                 }
             }
         }
@@ -679,7 +678,7 @@ class InternalJavaFunctions extends JavaLibrary {
                     try {
                         return ((Class<?>) input[0]).getDeclaredMethod((String) input[1], (Class<?>[]) input[2]);
                     } catch (NoSuchMethodException e) {
-                        throw new IllegalArgumentException(e);
+                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD, "Class: " + input[0] + " Method: " + input[1]);
                     }
                 }
                 Class<?>[] classes = new Class<?>[length - 2];
@@ -689,7 +688,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 try {
                     return ((Class<?>) input[0]).getDeclaredMethod((String) input[1], classes);
                 } catch (NoSuchMethodException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD, "Class: " + input[0] + " Method: " + input[1]);
                 }
             }
         }
@@ -914,34 +913,6 @@ class InternalJavaFunctions extends JavaLibrary {
             }
         }
 
-        private static class NewInstance implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_new_instance";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                try {
-                    return ((Class<?>) input[0]).newInstance();
-                } catch (InstantiationException e) {
-                    throw new IllegalArgumentException(e);
-                } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException(e);
-                }
-            }
-        }
-
         private static class GetEnclosingClass implements JavaFunction {
             @Override
             public boolean isVarArgs() {
@@ -1073,13 +1044,13 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public Object call(Object[] input) {
+                java.lang.reflect.Field field = (java.lang.reflect.Field) input[0];
                 try {
-                    java.lang.reflect.Field field = (java.lang.reflect.Field) input[0];
                     field.setAccessible(true);
                     field.set(input[1], input[2]);
                     return null;
                 } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
                 }
             }
         }
@@ -1102,12 +1073,12 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public Object call(Object[] input) {
+                java.lang.reflect.Field field = (java.lang.reflect.Field) input[0];
                 try {
-                    java.lang.reflect.Field field = (java.lang.reflect.Field) input[0];
                     field.setAccessible(true);
                     return field.get(input[1]);
                 } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
                 }
             }
         }
@@ -1201,28 +1172,28 @@ class InternalJavaFunctions extends JavaLibrary {
             public Object call(Object[] input) {
                 int length = input.length - 2;
                 if (length == 3 && input[2] instanceof Object[]) {
+                    java.lang.reflect.Method method = (java.lang.reflect.Method) input[0];
                     try {
-                        java.lang.reflect.Method method = (java.lang.reflect.Method) input[0];
                         method.setAccessible(true);
                         return method.invoke(input[1], (Object[]) input[2]);
                     } catch (IllegalAccessException e) {
-                        throw new IllegalArgumentException(e);
+                        throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, method.toString());
                     } catch (InvocationTargetException e) {
-                        throw new IllegalArgumentException(e);
+                        throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, method.toString());
                     }
                 }
                 Object[] parameters = new Object[length];
                 for (int i = 0; i < length; ++i) {
                     parameters[i] = input[i + 2];
                 }
+                java.lang.reflect.Method method = (java.lang.reflect.Method) input[0];
                 try {
-                    java.lang.reflect.Method method = (java.lang.reflect.Method) input[0];
                     method.setAccessible(true);
                     return method.invoke(input[1], parameters);
                 } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, method.toString());
                 } catch (InvocationTargetException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, method.toString());
                 }
             }
         }
@@ -1292,9 +1263,9 @@ class InternalJavaFunctions extends JavaLibrary {
             @Override
             public Object call(Object[] input) {
                 int length = input.length - 1;
+                java.lang.reflect.Constructor constructor = (java.lang.reflect.Constructor) input[0];
                 try {
                     if (length == 2 && input[1] instanceof Object[]) {
-                        java.lang.reflect.Constructor constructor = (java.lang.reflect.Constructor) input[0];
                         constructor.setAccessible(true);
                         return constructor.newInstance((Object[]) input[1]);
                     }
@@ -1302,15 +1273,14 @@ class InternalJavaFunctions extends JavaLibrary {
                     for (int i = 0; i < length; ++i) {
                         parameters[i] = input[i + 1];
                     }
-                    java.lang.reflect.Constructor constructor = (java.lang.reflect.Constructor) input[0];
                     constructor.setAccessible(true);
                     return constructor.newInstance(parameters);
                 } catch (InvocationTargetException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, constructor.toString());
                 } catch (InstantiationException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, constructor.toString());
                 } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, constructor.toString());
                 }
             }
         }
@@ -1549,7 +1519,8 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (o instanceof java.util.Collection) {
                     return ((java.util.Collection) o).size();
                 }
-                throw new IllegalArgumentException();
+                // In case that o is null.
+                throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
             }
         }
 
@@ -1578,7 +1549,8 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (o instanceof java.util.Collection) {
                     return ((java.util.Collection) o).isEmpty();
                 }
-                throw new IllegalArgumentException();
+                // In case that o is null.
+                throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
             }
         }
 
@@ -1604,7 +1576,8 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (o instanceof java.util.Collection) {
                     return ((java.util.Collection) o).add(input[1]);
                 }
-                throw new IllegalArgumentException();
+                // In case that o is null.
+                throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
             }
         }
 
@@ -1630,7 +1603,8 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (o instanceof java.util.Collection) {
                     return ((java.util.Collection) o).remove(input[1]);
                 }
-                throw new IllegalArgumentException();
+                // In case that o is null.
+                throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
             }
         }
     }
