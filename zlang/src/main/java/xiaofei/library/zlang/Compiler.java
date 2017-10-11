@@ -122,7 +122,7 @@ class Compiler {
 
     private void moveToNextChar() {
         if (++pos == program.length()) {
-            throw new CompileException(CompileError.INCOMPLETE_PROGRAM, lineNumber, previousLinePos, linePos - 1);
+            throw new CompileException(CompileError.INCOMPLETE_PROGRAM,  lineNumber, previousLinePos, "Program incomplete!");
         }
 		nextChar = program.charAt(pos);
         if (nextChar == '\n') {
@@ -251,7 +251,7 @@ class Compiler {
                 nextSymbol = Symbol.AND;
                 moveToNextChar();
             } else {
-                throw new CompileException(CompileError.WRONG_SYMBOL, lineNumber, previousLinePos, linePos - 1, "&");
+                throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "&");
             }
         } else if (nextChar == '|') {
             moveToNextChar();
@@ -259,12 +259,12 @@ class Compiler {
                 nextSymbol = Symbol.OR;
                 moveToNextChar();
             } else {
-                throw new CompileException(CompileError.WRONG_SYMBOL, lineNumber, previousLinePos, linePos - 1, "|");
+                throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "|");
             }
         } else {
             nextSymbol = CHARACTER_SYMBOLS.get(nextChar);
             if (nextSymbol == null) {
-                throw new CompileException(CompileError.WRONG_SYMBOL, lineNumber, previousLinePos, linePos - 1, Character.toString(nextChar));
+                throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, Character.toString(nextChar));
             }
             moveToNextChar();
         }
@@ -288,7 +288,7 @@ class Compiler {
             if (nextSymbol == Symbol.COMMA) {
                 moveToNextSymbol();
             } else if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "')' or ','");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ") or ,");
             }
         }
         moveToNextSymbol();
@@ -319,7 +319,7 @@ class Compiler {
             } else {
                 Integer address = symbolTable.get(id);
                 if (address == null) {
-                    throw new CompileException(CompileError.UNINITIALIZED_VARIABLE, lineNumber, previousLinePos, linePos - 1, id);
+                    throw new CompileException(CompileError.UNINITIALIZED_VARIABLE, lineNumber, previousLinePos, id);
                 }
                 generateCode(Fct.LOD, address);
             }
@@ -336,14 +336,14 @@ class Compiler {
             if (nextSymbol == Symbol.RIGHT_PARENTHESIS) {
                 moveToNextSymbol();
             } else {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "')'");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ")");
             }
         } else if (nextSymbol == Symbol.NOT) {
             moveToNextSymbol();
             factor();
             generateCode(Fct.OPR, Opr.NOT);
         } else {
-            throw new CompileException(CompileError.WRONG_SYMBOL, lineNumber, previousLinePos, linePos - 1, nextSymbol.toString());
+            throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "" + nextSymbol);
         }
     }
 
@@ -445,21 +445,22 @@ class Compiler {
                 generateCode(Fct.PROC, id);
                 addIntoNeededFunctions(id, parameterNumber);
             } else {
-                throw new CompileException(CompileError.ASSIGN_OR_CALL_FUNCTION_ERROR, lineNumber, previousLinePos, linePos - 1);
+                throw new CompileException(
+                        CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, id);
             }
             if (nextSymbol != Symbol.SEMICOLON) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "';'");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ";");
             }
             moveToNextSymbol();
         } else if (nextSymbol == Symbol.IF) {
             moveToNextSymbol();
             if (nextSymbol != Symbol.LEFT_PARENTHESIS) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "'('");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "(");
             }
             moveToNextSymbol();
             orExpression();
             if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "')'");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ")");
             }
             moveToNextSymbol();
             generateCode(Fct.JPC, 0); // if false then jump.
@@ -484,24 +485,24 @@ class Compiler {
                     if (nextSymbol == Symbol.RIGHT_BRACE) {
                         moveToNextSymbol();
                     } else {
-                        throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "}");
+                        throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "}");
                     }
                 }
             }
             if (nextSymbol != Symbol.RIGHT_BRACE) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "'}'");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "}");
             }
             moveToNextSymbol();
         } else if (nextSymbol == Symbol.WHILE) {
             int tmp1 = codeIndex + 1;
             moveToNextSymbol();
             if (nextSymbol != Symbol.LEFT_PARENTHESIS) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "'('");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "(");
             }
             moveToNextSymbol();
             orExpression();
             if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "')'");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ")");
             }
             moveToNextSymbol();
             generateCode(Fct.JPC, 0); //false then jump
@@ -517,19 +518,19 @@ class Compiler {
             continueRecorder.deleteCurrentLabel();
         } else if (nextSymbol == Symbol.BREAK) {
             if (!inLoop) {
-                throw new CompileException(CompileError.BREAK_ERROR, lineNumber, previousLinePos, linePos - 1);
+                throw new CompileException(CompileError.SEMANTIC_ERROR, lineNumber, previousLinePos, "'break' appears outside a loop.");
             }
             generateCode(Fct.JMP, 0);
             breakRecorder.addCode(codeIndex);
             moveToNextSymbol();
             if (nextSymbol != Symbol.SEMICOLON) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "';'");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ";");
             }
             moveToNextSymbol();
         } else if (nextSymbol == Symbol.FOR) {//for j=a to b step c
             moveToNextSymbol();
             if (nextSymbol != Symbol.ID) {
-                throw new CompileException(CompileError.FOR_ERROR, lineNumber, previousLinePos, linePos - 1, "ID");
+                throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "" + nextSymbol);
             }
             String id = (String) nextObject;
             Integer address = symbolTable.get(id);
@@ -538,14 +539,14 @@ class Compiler {
             }
             moveToNextSymbol();
             if (nextSymbol != Symbol.ASSIGN) {
-                throw new CompileException(CompileError.FOR_ERROR, lineNumber, previousLinePos, linePos - 1, "=");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "=");
             }
             moveToNextSymbol();
             numericExpression();
             generateCode(Fct.STO, address);
             int tmp1 = codeIndex + 1;
             if (nextSymbol != Symbol.TO) {
-                throw new CompileException(CompileError.FOR_ERROR, lineNumber, previousLinePos, linePos - 1, "to");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "to");
             }
             moveToNextSymbol();
             numericExpression();
@@ -557,7 +558,7 @@ class Compiler {
             int tmp3 = codeIndex;
             int tmp4 = codeIndex + 1;
             if (nextSymbol != Symbol.STEP) {
-                throw new CompileException(CompileError.FOR_ERROR, lineNumber, previousLinePos, linePos - 1, "step");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "step");
             }
             moveToNextSymbol();
             numericExpression();
@@ -577,13 +578,13 @@ class Compiler {
             continueRecorder.deleteCurrentLabel();
         } else if (nextSymbol == Symbol.CONTINUE) {
             if (!inLoop) {
-                throw new CompileException(CompileError.CONTINUE_ERROR, lineNumber, previousLinePos, linePos - 1);
+                throw new CompileException(CompileError.SEMANTIC_ERROR, lineNumber, previousLinePos, "'continue' appears outside a loop.");
             }
             generateCode(Fct.JMP, 0);
             continueRecorder.addCode(codeIndex);
             moveToNextSymbol();
             if (nextSymbol != Symbol.SEMICOLON) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "';'");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ";");
             }
             moveToNextSymbol();
         } else if (nextSymbol == Symbol.RETURN) {
@@ -595,7 +596,7 @@ class Compiler {
                 generateCode(Fct.VOID_RETURN, 0);
             }
             if (nextSymbol != Symbol.SEMICOLON) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "';'");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ";");
             }
             moveToNextSymbol();
         }
@@ -611,13 +612,13 @@ class Compiler {
             moveToNextSymbol();
         }
         if (nextSymbol != Symbol.FUNCTION) {
-            throw new CompileException(CompileError.FUNCTION_DECLARATION_ERROR, lineNumber, previousLinePos, linePos - 1, "function");
+            throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "function");
         }
         moveToNextSymbol();
         if (nextSymbol == Symbol.ID) {
             moveToNextSymbol();
         } else {
-            throw new CompileException(CompileError.FUNCTION_DECLARATION_ERROR, lineNumber, previousLinePos, linePos - 1, "ID");
+            throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "" + nextSymbol);
         }
         String functionName = (String) nextObject;
         int parameterNumber = 0;
@@ -625,11 +626,11 @@ class Compiler {
         if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
             moveToNextSymbol();
         } else {
-            throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "'('");
+            throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "(");
         }
         while (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
             if (nextSymbol != Symbol.ID) {
-                throw new CompileException(CompileError.FUNCTION_DECLARATION_ERROR, lineNumber, previousLinePos, linePos - 1, "parameter");
+                throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "" + nextSymbol);
             }
             String id = (String) nextObject;
             ++parameterNumber;
@@ -637,7 +638,7 @@ class Compiler {
             symbolTable.put(id, offset);
             moveToNextSymbol();
             if (nextSymbol != Symbol.RIGHT_PARENTHESIS && nextSymbol != Symbol.COMMA) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "')' or ','");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ") or ,");
             }
             if (nextSymbol == Symbol.COMMA) {
                 moveToNextSymbol();
@@ -659,14 +660,14 @@ class Compiler {
             if (nextSymbol == Symbol.END) {
                 break;
             } else if (nextSymbol != Symbol.FUNCTION) {
-                throw new CompileException(CompileError.FUNCTION_DECLARATION_ERROR, lineNumber, previousLinePos, linePos - 1, "function");
+                throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "function");
             }
         } while (true);
 //        library.compileDependencies();
         for (FunctionWrapper functionWrapper : neededFunctions) {
             if (!library.containsFunction(functionWrapper.functionName, functionWrapper.parameterNumber)) {
                 throw new CompileException(
-                        CompileError.UNDEFINED_FUNCTION, lineNumber, previousLinePos, linePos - 1,
+                        CompileError.UNDEFINED_FUNCTION, lineNumber, previousLinePos,
                         "Function name: " + functionWrapper.functionName
                                 + " Parameter number: " + functionWrapper.parameterNumber);
             }

@@ -8,23 +8,10 @@ public class CompileException extends RuntimeException {
 
     public final CompileError error;
 
-    public final String message;
+    public final String info;
 
-    public final int lineNumber;
-
-    public final int start;
-
-    public final int end;
-
-    CompileException(CompileError error, int lineNumber, int start, int end) {
-        this(error, lineNumber, start, end, null);
-    }
-
-    CompileException(CompileError error, int lineNumber, int start, int end, String message) {
+    CompileException(CompileError error, int lineNumber, int start, String message) {
         this.error = error;
-        this.message = message;
-        this.lineNumber = lineNumber;
-        this.start = start;
-        this.end = end;
+        this.info = "Compiler error: " + error + "\nAt Line " + lineNumber + " Position " + start + "\nInformation: " + message;
     }
 }

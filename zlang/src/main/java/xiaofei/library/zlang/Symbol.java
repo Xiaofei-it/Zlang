@@ -5,7 +5,6 @@ package xiaofei.library.zlang;
  */
 
 enum Symbol {
-
     END,
     FUNCTION,
     IF,
@@ -43,5 +42,4 @@ enum Symbol {
     MINUS,
     TIMES,
     DIVIDE,
-
 }
