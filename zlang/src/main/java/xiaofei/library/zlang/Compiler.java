@@ -9,6 +9,16 @@ import java.util.Set;
 
 /**
  * Created by Xiaofei on 2017/9/9.
+ *
+ * or_expression = and_exp || and_exp
+ *
+ * and_exp = comparison_exp && comparison_exp
+ *
+ * comparison_exp = numeric_exp > numeric_exp
+ *
+ * numeric_exp = term + term
+ *
+ * term = factor * factor
  */
 
 class Compiler {
@@ -69,7 +79,7 @@ class Compiler {
 
     private int linePos = 0;
 
-    private int previousPos;
+//    private int previousPos;
 
     private int previousLinePos;
 
@@ -89,7 +99,7 @@ class Compiler {
 
     private Map<String, Integer> symbolTable = new HashMap<>();
 
-    private LinkedList<FunctionWrapper> mNeededFunctions = new LinkedList<>();
+    private LinkedList<FunctionWrapper> neededFunctions = new LinkedList<>();
 
     private Library library;
 
@@ -140,7 +150,7 @@ class Compiler {
                 moveToNextChar();
             }
         }
-        previousPos = pos;
+//        previousPos = pos;
         previousLinePos = linePos;
         if (isAlpha(nextChar)) {
             String id = "";
@@ -273,7 +283,7 @@ class Compiler {
         int parameterNumber = 0;
         moveToNextSymbol();
         while (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
-            simpleExpression();
+            orExpression();
             ++parameterNumber;
             if (nextSymbol == Symbol.COMMA) {
                 moveToNextSymbol();
@@ -290,12 +300,12 @@ class Compiler {
         if (functionName.startsWith("_")) {
             return;
         }
-        for (FunctionWrapper functionWrapper : mNeededFunctions) {
+        for (FunctionWrapper functionWrapper : neededFunctions) {
             if (functionWrapper.functionName.equals(functionName) && functionWrapper.parameterNumber == parameterNumber) {
                 return;
             }
         }
-        mNeededFunctions.add(new FunctionWrapper(functionName, parameterNumber));
+        neededFunctions.add(new FunctionWrapper(functionName, parameterNumber));
     }
 
     private void factor() {
@@ -322,7 +332,7 @@ class Compiler {
             moveToNextSymbol();
         } else if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
             moveToNextSymbol();
-            expression();
+            orExpression();
             if (nextSymbol == Symbol.RIGHT_PARENTHESIS) {
                 moveToNextSymbol();
             } else {
@@ -339,7 +349,7 @@ class Compiler {
 
     private void term() {
         factor();
-        while (nextSymbol == Symbol.TIMES || nextSymbol == Symbol.DIVIDE || nextSymbol == Symbol.AND) {
+        while (nextSymbol == Symbol.TIMES || nextSymbol == Symbol.DIVIDE) {
             Symbol op = nextSymbol;
             moveToNextSymbol();
             factor();
@@ -347,13 +357,11 @@ class Compiler {
                 generateCode(Fct.OPR, Opr.TIMES);
             } else if (op == Symbol.DIVIDE) {
                 generateCode(Fct.OPR, Opr.DIVIDE);
-            } else if (op == Symbol.AND) {
-                generateCode(Fct.OPR, Opr.AND);
             }
         }
     }
 
-    private void simpleExpression() {
+    private void numericExpression() {
         if (nextSymbol == Symbol.PLUS || nextSymbol == Symbol.MINUS) {
             Symbol op = nextSymbol;
             moveToNextSymbol();
@@ -364,7 +372,7 @@ class Compiler {
         } else {
             term();
         }
-        while (nextSymbol == Symbol.PLUS || nextSymbol == Symbol.MINUS || nextSymbol == Symbol.OR) {
+        while (nextSymbol == Symbol.PLUS || nextSymbol == Symbol.MINUS) {
             Symbol op =nextSymbol;
             moveToNextSymbol();
             term();
@@ -372,20 +380,18 @@ class Compiler {
                 generateCode(Fct.OPR, Opr.PLUS);
             } else if (op == Symbol.MINUS) {
                 generateCode(Fct.OPR, Opr.MINUS);
-            } else if (op == Symbol.OR) {
-                generateCode(Fct.OPR, Opr.OR);
             }
         }
     }
 
-    private void expression() {
-        simpleExpression();
+    private void comparisonExpression() {
+        numericExpression();
         if (nextSymbol == Symbol.EQUAL || nextSymbol == Symbol.NOT_EQUAL
                 || nextSymbol == Symbol.LESS || nextSymbol == Symbol.LESS_EQUAL
                 || nextSymbol == Symbol.GREATER || nextSymbol == Symbol.GREATER_EQUAL) {
             Symbol op = nextSymbol;
             moveToNextSymbol();
-            simpleExpression();
+            numericExpression();
             if (op == Symbol.EQUAL) {
                 generateCode(Fct.OPR, Opr.EQUAL);
             } else if (op == Symbol.NOT_EQUAL) {
@@ -402,6 +408,24 @@ class Compiler {
         }
     }
 
+    private void andExpression() {
+        comparisonExpression();
+        while (nextSymbol == Symbol.AND) {
+            moveToNextSymbol();
+            comparisonExpression();
+            generateCode(Fct.OPR, Opr.AND);
+        }
+    }
+
+    private void orExpression() {
+        andExpression();
+        while (nextSymbol == Symbol.OR) {
+            moveToNextSymbol();
+            andExpression();
+            generateCode(Fct.OPR, Opr.OR);
+        }
+    }
+
     private void statement(boolean inLoop) {
         if (nextSymbol == Symbol.SEMICOLON) {
             moveToNextSymbol();
@@ -414,7 +438,7 @@ class Compiler {
                     symbolTable.put(id, address = ++offset);
                 }
                 moveToNextSymbol();
-                expression();
+                orExpression();
                 generateCode(Fct.STO, address);
             } else if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
                 int parameterNumber = callFunction();
@@ -433,7 +457,7 @@ class Compiler {
                 throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "'('");
             }
             moveToNextSymbol();
-            expression();
+            orExpression();
             if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "')'");
             }
@@ -475,7 +499,7 @@ class Compiler {
                 throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "'('");
             }
             moveToNextSymbol();
-            expression();
+            orExpression();
             if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, linePos - 1, "')'");
             }
@@ -517,14 +541,14 @@ class Compiler {
                 throw new CompileException(CompileError.FOR_ERROR, lineNumber, previousLinePos, linePos - 1, "=");
             }
             moveToNextSymbol();
-            simpleExpression();
+            numericExpression();
             generateCode(Fct.STO, address);
             int tmp1 = codeIndex + 1;
             if (nextSymbol != Symbol.TO) {
                 throw new CompileException(CompileError.FOR_ERROR, lineNumber, previousLinePos, linePos - 1, "to");
             }
             moveToNextSymbol();
-            simpleExpression();
+            numericExpression();
             generateCode(Fct.LOD, address);
             generateCode(Fct.OPR, Opr.GREATER_EQUAL);
             generateCode(Fct.JPC, 0);
@@ -536,7 +560,7 @@ class Compiler {
                 throw new CompileException(CompileError.FOR_ERROR, lineNumber, previousLinePos, linePos - 1, "step");
             }
             moveToNextSymbol();
-            simpleExpression();
+            numericExpression();
             generateCode(Fct.LOD, address);
             generateCode(Fct.OPR, Opr.PLUS);
             generateCode(Fct.STO, address);
@@ -565,7 +589,7 @@ class Compiler {
         } else if (nextSymbol == Symbol.RETURN) {
             moveToNextSymbol();
             if (nextSymbol != Symbol.SEMICOLON) {
-                expression();
+                orExpression();
                 generateCode(Fct.FUN_RETURN, 0);
             } else {
                 generateCode(Fct.VOID_RETURN, 0);
@@ -639,7 +663,7 @@ class Compiler {
             }
         } while (true);
 //        library.compileDependencies();
-        for (FunctionWrapper functionWrapper : mNeededFunctions) {
+        for (FunctionWrapper functionWrapper : neededFunctions) {
             if (!library.containsFunction(functionWrapper.functionName, functionWrapper.parameterNumber)) {
                 throw new CompileException(
                         CompileError.UNDEFINED_FUNCTION, lineNumber, previousLinePos, linePos - 1,
@@ -685,4 +709,3 @@ class Compiler {
         }
     }
 }
-// TODO && ||
