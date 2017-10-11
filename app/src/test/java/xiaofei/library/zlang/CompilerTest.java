@@ -40,7 +40,7 @@ public class CompilerTest {
                         "a = 1;" +
                         "while (a > 0) {" +
                         "  a=a*8;" +
-                        "  if ((a<=10)&&(a>8)) {" +
+                        "  if (a<=10&&a>8) {" +
                         "    s = 0;" +
                         "    while (s< 100) {" +
                         "      s=s+a;" +
