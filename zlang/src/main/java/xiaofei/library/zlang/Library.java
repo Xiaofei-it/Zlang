@@ -151,7 +151,7 @@ public class Library {
         }
 
         public Builder addFunctions(String functions) {
-            program.append('\n').append(functions);
+            program.append(functions).append('\n');
             return this;
         }
 

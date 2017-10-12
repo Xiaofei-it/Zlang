@@ -12,6 +12,6 @@ public class CompileException extends RuntimeException {
 
     CompileException(CompileError error, int lineNumber, int start, String message) {
         this.error = error;
-        this.info = "Compiler error: " + error + "\nAt Line " + lineNumber + " Position " + start + "\nInformation: " + message;
+        this.info = "Compiler error: " + error + "\nAt Line " + lineNumber + " Position " + (start - 1) + "\nInformation: " + message;
     }
 }

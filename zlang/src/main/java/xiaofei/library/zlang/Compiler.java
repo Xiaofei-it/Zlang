@@ -75,7 +75,7 @@ class Compiler {
 
     private int pos = -1;
 
-    private int lineNumber = 0;
+    private int lineNumber = 1;
 
     private int linePos = 0;
 
@@ -160,6 +160,7 @@ class Compiler {
             } while (isAlpha(nextChar) || isDigit(nextChar));
             if (RESERVED_WORDS_SYMBOLS.containsKey(id)) {
                 nextSymbol = RESERVED_WORDS_SYMBOLS.get(id);
+                nextObject = nextSymbol;
             } else if (id.equals("true") || id.equals("false")) {
                 nextSymbol = Symbol.BOOLEAN;
                 nextObject = id.equals("true");
@@ -221,6 +222,7 @@ class Compiler {
             } else {
                 nextSymbol = Symbol.LESS;
             }
+            nextObject = nextSymbol;
         } else if (nextChar == '>') {
             moveToNextChar();
             if (nextChar == '=') {
@@ -229,6 +231,7 @@ class Compiler {
             } else {
                 nextSymbol = Symbol.GREATER;
             }
+            nextObject = nextSymbol;
         } else if (nextChar == '=') {
             moveToNextChar();
             if (nextChar == '=') {
@@ -237,6 +240,7 @@ class Compiler {
             } else {
                 nextSymbol = Symbol.ASSIGN;
             }
+            nextObject = nextSymbol;
         } else if (nextChar == '!') {
             moveToNextChar();
             if (nextChar == '=') {
@@ -245,6 +249,7 @@ class Compiler {
             } else {
                 nextSymbol = Symbol.NOT;
             }
+            nextObject = nextSymbol;
         } else if (nextChar == '&') {
             moveToNextChar();
             if (nextChar == '&') {
@@ -253,6 +258,7 @@ class Compiler {
             } else {
                 throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "&");
             }
+            nextObject = nextSymbol;
         } else if (nextChar == '|') {
             moveToNextChar();
             if (nextChar == '|') {
@@ -261,11 +267,13 @@ class Compiler {
             } else {
                 throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "|");
             }
+            nextObject = nextSymbol;
         } else {
             nextSymbol = CHARACTER_SYMBOLS.get(nextChar);
             if (nextSymbol == null) {
                 throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, Character.toString(nextChar));
             }
+            nextObject = nextSymbol;
             moveToNextChar();
         }
     }
@@ -430,8 +438,8 @@ class Compiler {
         if (nextSymbol == Symbol.SEMICOLON) {
             moveToNextSymbol();
         } else if (nextSymbol == Symbol.ID) {
-            moveToNextSymbol();
             String id = (String) nextObject;
+            moveToNextSymbol();
             if (nextSymbol == Symbol.ASSIGN) {
                 Integer address = symbolTable.get(id);
                 if (address == null) {
@@ -615,12 +623,11 @@ class Compiler {
             throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "function");
         }
         moveToNextSymbol();
-        if (nextSymbol == Symbol.ID) {
-            moveToNextSymbol();
-        } else {
+        if (nextSymbol != Symbol.ID) {
             throw new CompileException(CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, "" + nextSymbol);
         }
         String functionName = (String) nextObject;
+        moveToNextSymbol();
         int parameterNumber = 0;
         offset = -1;
         if (nextSymbol == Symbol.LEFT_PARENTHESIS) {

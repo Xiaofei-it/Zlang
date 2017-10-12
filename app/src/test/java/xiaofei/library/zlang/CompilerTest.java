@@ -75,8 +75,8 @@ public class CompilerTest {
                     .addFunctions("function f(a) {\n" +
                             "s = 0;\n" +
                             "for i = 0 to 100 step 1 {\n" +
-                            " s = s + i;\n" +
-                            "if (s > 100)\n" +
+                            " s  =s + i;\n" +
+                            "if sk > 100)\n" +
                             "break;\n" +
                             "else continue;" +
                             "\n}\n" +
@@ -92,13 +92,12 @@ public class CompilerTest {
         try {
             Library library = new Library.Builder()
                     .addFunctions("function f(a) {\n" +
-                            "s = 0;\n" +
+                            "s  0;\n" +
                             "for i = 0 to 100 step 1 {\n" +
                             " s = s + i;\n" +
-                            "if (s > 100)\n" +
-                            "break;\n\n" +
-                            "else continue;" +
-                            "\n}\n" +
+                            "ffff (s > 100);\n" +
+                            "brek;\n" +
+                            "else ontinue;\n}" +
                             "return s}\n" +
                             "")
                     .build();
