@@ -111,9 +111,9 @@ public class CompilerTest {
             Library library = new Library.Builder()
                     .addFunctions("function f(a) {\n" +
                             "s = 0;\n" +
-                            "for i = 0 to 100 step 1 {\n" +
-                            " s = s + i;\n" +
-                            "if (s > 100\n" +
+                            //"for i = 0 to 100 step 1 {\n" +
+                            //" s = s + i;\n" +
+                            "if (s > 100_\n" +
                             "break;\n" +
                             "else continue;" +
                             "\n}\n" +

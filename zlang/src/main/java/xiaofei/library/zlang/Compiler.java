@@ -454,7 +454,7 @@ class Compiler {
                 addIntoNeededFunctions(id, parameterNumber);
             } else {
                 throw new CompileException(
-                        CompileError.ILLEGAL_SYMBOL, lineNumber, previousLinePos, id);
+                        CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, "= or (");
             }
             if (nextSymbol != Symbol.SEMICOLON) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, lineNumber, previousLinePos, ";");
