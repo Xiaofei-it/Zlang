@@ -54,6 +54,11 @@ class Executor {
                         pos = (int) operand;
                     }
                     break;
+                case JPT_SC:
+                    if ((boolean) stack[top]) {
+                        pos = (int) operand;
+                    }
+                    break;
                 case FUN:
                 case PROC: {
                     String target = (String) operand;

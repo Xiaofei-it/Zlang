@@ -432,11 +432,17 @@ class Compiler {
     }
 
     private void disjunctionExpression() {
+        ArrayList<Integer> codeIndexes = new ArrayList<>();
         conjunctionExpression();
         while (nextSymbol == Symbol.OR) {
+            generateCode(Fct.JPT_SC, 0);
+            codeIndexes.add(codeIndex);
             moveToNextSymbol();
             conjunctionExpression();
             generateCode(Fct.OPR, Opr.OR);
+        }
+        for (int index : codeIndexes) {
+            modifyCodeOperand(index, codeIndex + 1);
         }
     }
 
