@@ -291,7 +291,7 @@ class Compiler {
         int parameterNumber = 0;
         moveToNextSymbol();
         while (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
-            orExpression();
+            disjunctionExpression();
             ++parameterNumber;
             if (nextSymbol == Symbol.COMMA) {
                 moveToNextSymbol();
@@ -305,9 +305,9 @@ class Compiler {
     }
 
     private void addIntoNeededFunctions(String functionName, int parameterNumber) {
-        if (functionName.startsWith("_")) {
-            return;
-        }
+//        if (functionName.startsWith("_")) {
+//            return;
+//        }
         for (FunctionWrapper functionWrapper : neededFunctions) {
             if (functionWrapper.functionName.equals(functionName) && functionWrapper.parameterNumber == parameterNumber) {
                 return;
@@ -340,7 +340,7 @@ class Compiler {
             moveToNextSymbol();
         } else if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
             moveToNextSymbol();
-            orExpression();
+            disjunctionExpression();
             if (nextSymbol == Symbol.RIGHT_PARENTHESIS) {
                 moveToNextSymbol();
             } else {
@@ -416,7 +416,7 @@ class Compiler {
         }
     }
 
-    private void andExpression() {
+    private void conjunctionExpression() {
         comparisonExpression();
         while (nextSymbol == Symbol.AND) {
             moveToNextSymbol();
@@ -425,11 +425,11 @@ class Compiler {
         }
     }
 
-    private void orExpression() {
-        andExpression();
+    private void disjunctionExpression() {
+        conjunctionExpression();
         while (nextSymbol == Symbol.OR) {
             moveToNextSymbol();
-            andExpression();
+            conjunctionExpression();
             generateCode(Fct.OPR, Opr.OR);
         }
     }
@@ -446,7 +446,7 @@ class Compiler {
                     symbolTable.put(id, address = ++offset);
                 }
                 moveToNextSymbol();
-                orExpression();
+                disjunctionExpression();
                 generateCode(Fct.STO, address);
             } else if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
                 int parameterNumber = callFunction();
@@ -466,7 +466,7 @@ class Compiler {
                 throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "(");
             }
             moveToNextSymbol();
-            orExpression();
+            disjunctionExpression();
             if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, ")");
             }
@@ -508,7 +508,7 @@ class Compiler {
                 throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "(");
             }
             moveToNextSymbol();
-            orExpression();
+            disjunctionExpression();
             if (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, ")");
             }
@@ -598,7 +598,7 @@ class Compiler {
         } else if (nextSymbol == Symbol.RETURN) {
             moveToNextSymbol();
             if (nextSymbol != Symbol.SEMICOLON) {
-                orExpression();
+                disjunctionExpression();
                 generateCode(Fct.FUN_RETURN, 0);
             } else {
                 generateCode(Fct.VOID_RETURN, 0);

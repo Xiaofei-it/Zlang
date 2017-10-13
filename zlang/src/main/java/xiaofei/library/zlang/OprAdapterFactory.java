@@ -436,7 +436,7 @@ class OprAdapterFactory {
         public Object operate(Object[] stack, int start) {
             Object o1 = stack[start], o2 = stack[start + 1];
             if (o1 instanceof Boolean && o2 instanceof Boolean) {
-                return !(boolean) o1 && (boolean) o2;
+                return (boolean) o1 && (boolean) o2;
             } else {
                 throw new IllegalArgumentException();
             }

@@ -28,20 +28,23 @@ public class Library {
         if (codeMap == null) {
             throw new CompileException(CompileError.NOT_COMPILED, -1, -1, "Library " + this + " is not compiled.");
         }
-        boolean contain = false;
         HashMap<Integer, ArrayList<Code>> codes = codeMap.get(functionName);
         if (codes != null) {
-            contain = codes.containsKey(parameterNumber);
-        }
-        if (!contain) {
-            for (Library library : dependencies) {
-                if (library.containsFunction(functionName, parameterNumber)) {
-                    contain = true;
-                    break;
-                }
+            if (codes.containsKey(parameterNumber)) {
+                return true;
             }
         }
-        return contain;
+        for (JavaLibrary javaLibrary : javaDependencies) {
+            if (javaLibrary.get(functionName, parameterNumber) != null) {
+                return true;
+            }
+        }
+        for (Library library : dependencies) {
+            if (library.containsFunction(functionName, parameterNumber)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     JavaFunction getJavaFunction(String functionName, int parameter) {

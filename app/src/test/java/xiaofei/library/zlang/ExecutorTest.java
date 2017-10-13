@@ -100,4 +100,44 @@ public class ExecutorTest {
         library.print("plus", 1);
         System.out.println(library.execute("plus", new Object[]{new String[]{"ab", "cd", "e"}}));
     }
+
+    @Test
+    public void test6() {
+        JavaLibrary javaLibrary = new JavaLibrary();
+        javaLibrary.addFunction(new JavaFunction() {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "test";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0].hashCode();
+            }
+        });
+        try {
+            Library library = new Library.Builder()
+                    .addJavaDependency(javaLibrary)
+                    .addFunctions(
+                            "function check(x) {" +
+                                    "if (x != null && test(x) > 0) return 1; else return -1;}")
+                    .build();
+            library.print("check", 1);
+            System.out.println(library.execute("check", new Object[]{"e"}));
+            System.out.println(library.execute("check", new Object[]{null}));
+        } catch (CompileException e) {
+            System.out.println(e.error + " " + e.info);
+        }
+
+    }
 }
