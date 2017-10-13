@@ -417,11 +417,17 @@ class Compiler {
     }
 
     private void conjunctionExpression() {
+        ArrayList<Integer> codeIndexes = new ArrayList<>();
         comparisonExpression();
         while (nextSymbol == Symbol.AND) {
+            generateCode(Fct.JPF_SC, 0);
+            codeIndexes.add(codeIndex);
             moveToNextSymbol();
             comparisonExpression();
             generateCode(Fct.OPR, Opr.AND);
+        }
+        for (int index : codeIndexes) {
+            modifyCodeOperand(index, codeIndex + 1);
         }
     }
 
@@ -471,7 +477,7 @@ class Compiler {
                 throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, ")");
             }
             moveToNextSymbol();
-            generateCode(Fct.JPC, 0); // if false then jump.
+            generateCode(Fct.JPF, 0); // if false then jump.
             int tmp = codeIndex;
             statement(inLoop);
             modifyCodeOperand(tmp, codeIndex + 1);
@@ -513,7 +519,7 @@ class Compiler {
                 throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, ")");
             }
             moveToNextSymbol();
-            generateCode(Fct.JPC, 0); //false then jump
+            generateCode(Fct.JPF, 0); //false then jump
             int tmp2 = codeIndex;
             breakRecorder.createNewLabel();
             continueRecorder.createNewLabel();
@@ -560,7 +566,7 @@ class Compiler {
             numericExpression();
             generateCode(Fct.LOD, address);
             generateCode(Fct.OPR, Opr.GREATER_EQUAL);
-            generateCode(Fct.JPC, 0);
+            generateCode(Fct.JPF, 0);
             int tmp2 = codeIndex;
             generateCode(Fct.JMP, 0);
             int tmp3 = codeIndex;

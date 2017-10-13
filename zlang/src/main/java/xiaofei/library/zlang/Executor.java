@@ -44,8 +44,13 @@ class Executor {
                 case JMP:
                     pos = (int) operand;
                     break;
-                case JPC:
+                case JPF:
                     if (!(boolean) stack[top--]) {
+                        pos = (int) operand;
+                    }
+                    break;
+                case JPF_SC:
+                    if (!(boolean) stack[top]) {
                         pos = (int) operand;
                     }
                     break;

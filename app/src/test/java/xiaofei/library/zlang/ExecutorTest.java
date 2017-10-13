@@ -130,7 +130,7 @@ public class ExecutorTest {
                     .addJavaDependency(javaLibrary)
                     .addFunctions(
                             "function check(x) {" +
-                                    "if (x != null && test(x) > 0) return 1; else return -1;}")
+                                    "if (x != null && test(x) > 0 && test(x) > 0) return 1; else return -1;}")
                     .build();
             library.print("check", 1);
             System.out.println(library.execute("check", new Object[]{"e"}));

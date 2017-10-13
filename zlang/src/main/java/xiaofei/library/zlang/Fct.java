@@ -11,7 +11,9 @@ enum Fct {
     OPR,
     INT,
     JMP,
-    JPC,
+    JPF,
+    JPF_SC, // Short circuit
+    JPT_SC, // Short circuit
     FUN,
     PROC,
     FUN_RETURN,
