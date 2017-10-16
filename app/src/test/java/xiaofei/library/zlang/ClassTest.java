@@ -1,5 +1,6 @@
 package xiaofei.library.zlang;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -76,5 +77,20 @@ public class ClassTest {
         System.out.println(cc1[1] + " " + cc2[8]);
         System.out.println(cc1[2] + " " + cc2[9]);
         System.out.println(cc1[3] + " " + cc2[10]);
+    }
+
+    @Test
+    public void test4() {
+        int[][] a= new int[3][4];
+        a[1] = new int[]{1, 2, 3, 4, 5};
+        a[2] = new int[]{6, 7, 8, 9, 10, 11};
+        a[0] = new int[6];
+        Assert.assertEquals(a[1][3], 4);
+        for (int i = 0; i < a.length; ++i) {
+            int[] b = a[i];
+            for (int j = 0; j < b.length; ++j) {
+                System.out.println(i + " " + j + " " + a[i][j] + ' ' + b[j]);
+            }
+        }
     }
 }

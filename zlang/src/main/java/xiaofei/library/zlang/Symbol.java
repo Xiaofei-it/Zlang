@@ -38,6 +38,8 @@ enum Symbol {
     RIGHT_PARENTHESIS,
     LEFT_BRACE, // {
     RIGHT_BRACE,
+    LEFT_BRACKET, // [
+    RIGHT_BRACKET,
     PLUS,
     MINUS,
     TIMES,

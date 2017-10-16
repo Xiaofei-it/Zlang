@@ -1,5 +1,6 @@
 package xiaofei.library.zlang;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 
 class Executor {
 
-    static final Object VOID = new Object();
+    static final Object NO_RETURN_VALUE = new Object();
 
     private Executor() {}
 
@@ -35,9 +36,29 @@ class Executor {
                 case LOD:
                     stack[++top] = stack[base + (int) operand];
                     break;
+                case ALOD: {
+                    int dimens = (int) stack[top--];
+                    Object tmp = stack[base + (int) operand];
+                    for (int i = top - dimens + 1; i <= top; ++i) {
+                        tmp = Array.get(tmp, (int) stack[i]);
+                    }
+                    stack[top = top - dimens + 1] = tmp;
+                    break;
+                }
                 case STO:
                     stack[base + (int) operand] = stack[top--];
                     break;
+                case ASTO: {
+                    Object value = stack[top--];
+                    int dimens = (int) stack[top--];
+                    Object tmp = stack[base + (int) operand];
+                    for (int i = top - dimens + 1; i <= top - 1; ++i) {
+                        tmp = Array.get(tmp, (int) stack[i]);
+                    }
+                    Array.set(tmp, (int) stack[top], value);
+                    top -= dimens;
+                    break;
+                }
                 case INT:
                     top += (int) operand;
                     break;
@@ -105,7 +126,7 @@ class Executor {
                     break;
                 }
                 case VOID_RETURN: {
-                    returnValue = VOID;
+                    returnValue = NO_RETURN_VALUE;
                     Frame frame = (Frame) stack[top = base - 1];
                     pos = frame.pos;
                     base = frame.base;

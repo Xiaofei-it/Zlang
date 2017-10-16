@@ -66,6 +66,8 @@ class Compiler {
             put(')', Symbol.RIGHT_PARENTHESIS);
             put('{', Symbol.LEFT_BRACE);
             put('}', Symbol.RIGHT_BRACE);
+            put('[', Symbol.LEFT_BRACKET);
+            put(']', Symbol.RIGHT_BRACKET);
             put('+', Symbol.PLUS);
             put('-', Symbol.MINUS);
             put('*', Symbol.TIMES);
@@ -324,6 +326,24 @@ class Compiler {
                 int parameterNumber = callFunction();
                 generateCode(Fct.FUN, id);// add a label to indicate we should not ignore the return value.
                 addIntoNeededFunctions(id, parameterNumber);
+            } else if (nextSymbol == Symbol.LEFT_BRACKET) {
+                Integer address = symbolTable.get(id);
+                if (address == null) {
+                    throw new CompileException(CompileError.UNINITIALIZED_VARIABLE, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, id);
+                }
+                int dimens = 0;
+                do {
+                    ++dimens;
+                    moveToNextSymbol();
+                    numericExpression();
+                    if (nextSymbol == Symbol.RIGHT_BRACKET) {
+                        moveToNextSymbol();
+                    } else {
+                        throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "]");
+                    }
+                } while (nextSymbol == Symbol.LEFT_BRACKET);
+                generateCode(Fct.LIT, dimens);
+                generateCode(Fct.ALOD, address);
             } else {
                 Integer address = symbolTable.get(id);
                 if (address == null) {
@@ -464,6 +484,29 @@ class Compiler {
                 int parameterNumber = callFunction();
                 generateCode(Fct.PROC, id);
                 addIntoNeededFunctions(id, parameterNumber);
+            } else if (nextSymbol == Symbol.LEFT_BRACKET) {
+                Integer address = symbolTable.get(id);
+                if (address == null) {
+                    throw new CompileException(CompileError.UNINITIALIZED_ARRAY, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, id);
+                }
+                int dimens = 0;
+                do {
+                    ++dimens;
+                    moveToNextSymbol();
+                    numericExpression();
+                    if (nextSymbol == Symbol.RIGHT_BRACKET) {
+                        moveToNextSymbol();
+                    } else {
+                        throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "]");
+                    }
+                } while (nextSymbol == Symbol.LEFT_BRACKET);
+                generateCode(Fct.LIT, dimens);
+                if (nextSymbol != Symbol.ASSIGN) {
+                    throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "=");
+                }
+                moveToNextSymbol();
+                disjunctionExpression();
+                generateCode(Fct.ASTO, address);
             } else {
                 throw new CompileException(
                         CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "= or (");

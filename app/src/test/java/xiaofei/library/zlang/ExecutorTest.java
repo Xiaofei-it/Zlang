@@ -1,5 +1,6 @@
 package xiaofei.library.zlang;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ExecutorTest {
@@ -179,5 +180,31 @@ public class ExecutorTest {
             System.out.println(e.error + " " + e.info);
         }
 
+    }
+
+    @Test
+    public void test8() {
+        Library library = new Library.Builder()
+                .addFunctions("function f(a) {a[9-8][2][3] = 4 * 5; b = 3; return a[b-2][8-6][b] + 1;}")
+                .addFunctions("function g(a) {" +
+                        "sum = 0; for i = 0 to 3 step 1 for j = 0 to 4 step 1 for k = 0 to 2 step 1 {a[i][j][k] = i * j * k; sum = sum + a[i][j][k];} return sum;" +
+                        "}")
+                .build();
+        library.print("f", 1);
+        library.print("g", 1);
+        System.out.println(library.execute("f", new Object[]{new int[2][3][4]}));
+        int[][][] a = new int[4][5][3];
+        int tmp = (int) library.execute("g", new Object[]{a});
+        int sum = 0;
+        for (int i = 0; i <= 3; ++i) {
+            for (int j = 0; j <= 4; ++j) {
+                for (int k = 0; k <=2; ++k) {
+                    sum += a[i][j][k];
+                    System.out.println(i + " " + j + " "  + k + " "  + a[i][j][k]);
+                }
+            }
+        }
+        System.out.println(tmp);
+        Assert.assertEquals(tmp, sum);
     }
 }

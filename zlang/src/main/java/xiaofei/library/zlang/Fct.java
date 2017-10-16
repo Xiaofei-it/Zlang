@@ -7,7 +7,9 @@ package xiaofei.library.zlang;
 enum Fct {
     LIT,
     LOD,
+    ALOD,
     STO,
+    ASTO,
     OPR,
     INT,
     JMP,
