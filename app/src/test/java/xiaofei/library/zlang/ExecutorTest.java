@@ -77,9 +77,9 @@ public class ExecutorTest {
         Library library = new Library.Builder()
                 .addFunctions(
                         "function check(array, x) {" +
-                                "len = _array_length(array);" +
+                                "len = _length(array);" +
                                 "for i = 0 to len - 1 step 1 {" +
-                                "  if (_equal(_array_get(array, i), x)) {" +
+                                "  if (_equal(array[i], x)) {" +
                                 "      return i;" +
                                 "  }" +
                                 "}" +
@@ -87,10 +87,10 @@ public class ExecutorTest {
                                 "}")
                 .addFunctions(
                         "function plus(array) {" +
-                                "len = _array_length(array);" +
+                                "len = _length(array);" +
                                 "result = \"\";" +
                                 "for i = 0 to len - 1 step 1 {" +
-                                "  result = result + _array_get(array,i);" +
+                                "  result = result + array[i];" +
                                 "  }" +
                                 "  return result;" +
                                 "}")

@@ -20,9 +20,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Test.Add2(),
                 new Test.Add3(),
 
-                new Array.Get(),
                 new Array.GetLength(),
-                new Array.Set(),
                 new Array.NewArray(),
                 new Array.ArrayOf(),
 
@@ -225,76 +223,6 @@ class InternalJavaFunctions extends JavaLibrary {
     }
 
     private static class Array {
-        private static class Get implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_array_get";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                Object array = input[0];
-                int length = input.length;
-                if (length == 2 && input[1] instanceof int[]) {
-                    int[] indexes = (int[]) input[1];
-                    int indexNumber = indexes.length;
-                    for (int i = 0; i <= indexNumber - 2; ++i) {
-                        array = java.lang.reflect.Array.get(array, indexes[i]);
-                    }
-                    return java.lang.reflect.Array.get(array, indexes[indexNumber - 1]);
-                }
-                for (int i = 1; i <= length - 2; ++i) {
-                    array = java.lang.reflect.Array.get(array, (int) input[i]);
-                }
-                return java.lang.reflect.Array.get(array, (int) input[length - 1]);
-            }
-        }
-
-        private static class Set implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-            @Override
-            public int getParameterNumber() {
-                return 3;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_array_set";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                // array, i, o
-                Object array = input[0];
-                int length = input.length;
-                if (length == 3 && input[1]instanceof int[]) {
-                    int[] indexes = (int[]) input[1];
-                    int indexNumber = indexes.length;
-                    for (int i = 0; i <= indexNumber - 2; ++i) {
-                        array = java.lang.reflect.Array.get(array, indexes[i]);
-                    }
-                    java.lang.reflect.Array.set(array, indexes[indexNumber - 1], input[length - 1]);
-                    return null;
-                }
-                for (int i = 1; i <= length - 3; ++i) {
-                    array = java.lang.reflect.Array.get(array, (int) input[i]);
-                }
-                java.lang.reflect.Array.set(array, (int) input[length - 2], input[length - 1]);
-                return null;
-            }
-        }
 
         private static class GetLength implements JavaFunction {
             @Override
@@ -308,7 +236,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "_array_length";
+                return "_length";
             }
 
             @Override
@@ -316,7 +244,6 @@ class InternalJavaFunctions extends JavaLibrary {
                 return java.lang.reflect.Array.getLength(input[0]);
             }
         }
-
 
         private static class ArrayOf implements JavaFunction {
             @Override
@@ -356,7 +283,18 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public Object call(Object[] input) {
-                Class<?> clazz = (Class<?>) input[0];
+                Class<?> clazz;
+                if (input[0] instanceof Class<?>) {
+                    clazz = (Class<?>) input[0];
+                } else if (input[0] instanceof String) {
+                    try {
+                        clazz = Class.forName((String) input[0]);
+                    } catch (ClassNotFoundException e) {
+                        throw new ZlangRuntimeException(ZlangRuntimeError.CLASS_NOT_FOUND, "" + input[0]);
+                    }
+                } else {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
+                }
                 if (input.length == 2 && input[1] instanceof int[]) {
                     return java.lang.reflect.Array.newInstance(clazz, (int[]) input[1]);
                 }
