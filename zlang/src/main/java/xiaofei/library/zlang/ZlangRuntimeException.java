@@ -6,13 +6,8 @@ package xiaofei.library.zlang;
 
 public class ZlangRuntimeException extends RuntimeException {
 
-    public final ZlangRuntimeError error;
-
-    public final String message;
-
-    ZlangRuntimeException(ZlangRuntimeError error, String message) {
-        this.error = error;
-        this.message = message;
+    ZlangRuntimeException(ZlangRuntimeError error, String info) {
+        super("Runtime error: " + error + " Info: " + info);
     }
 
     ZlangRuntimeException(ZlangRuntimeError error) {

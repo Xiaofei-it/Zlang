@@ -137,7 +137,7 @@ public class ExecutorTest {
             System.out.println(library.execute("check", new Object[]{"e"}));
             System.out.println(library.execute("check", new Object[]{null}));
         } catch (CompileException e) {
-            System.out.println(e.error + " " + e.info);
+            System.out.print(e);
         }
 
     }
@@ -177,7 +177,7 @@ public class ExecutorTest {
             System.out.println(library.execute("check", new Object[]{"e"}));
             System.out.println(library.execute("check", new Object[]{null}));
         } catch (CompileException e) {
-            System.out.println(e.error + " " + e.info);
+            System.out.println(e);
         }
 
     }

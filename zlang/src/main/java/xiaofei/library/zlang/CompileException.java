@@ -6,12 +6,7 @@ package xiaofei.library.zlang;
 
 public class CompileException extends RuntimeException {
 
-    public final CompileError error;
-
-    public final String info;
-
-    CompileException(CompileError error, int lineNumber, int start, String message) {
-        this.error = error;
-        this.info = "Compiler error: " + error + "\nAt Line " + lineNumber + " Position " + (start - 1) + "\nInformation: " + message;
+    CompileException(CompileError error, int lineNumber, int start, String info) {
+        super("" + error + ": " + info + " At " + lineNumber + ":" + (start - 1));
     }
 }
