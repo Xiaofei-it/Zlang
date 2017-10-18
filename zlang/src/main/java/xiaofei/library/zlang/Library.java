@@ -9,6 +9,8 @@ import java.util.HashMap;
 
 public class Library {
 
+    public static final Object NO_RETURN_VALUE = Executor.NO_RETURN_VALUE;
+
     private ArrayList<Library> dependencies;
 
     private ArrayList<JavaLibrary> javaDependencies;
