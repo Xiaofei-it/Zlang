@@ -104,7 +104,7 @@ public class Library {
         new Compiler(this).compile();
     }
 
-    Object execute(String functionName, Object[] input) {
+    public Object execute(String functionName, Object[] input) {
         return Executor.execute(this, functionName, input);
     }
 
