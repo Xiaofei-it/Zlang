@@ -18,7 +18,11 @@ public final class Libraries {
     private static class ReflectionUtils extends JavaLibrary {
 
         private ReflectionUtils() {
-            addFunctions(new JavaFunction[]{
+        }
+
+        @Override
+        protected JavaFunction[] onProvideJavaFunctions() {
+            return new JavaFunction[]{
                     new NewInstance(),
                     new NewInstancePublic(),
                     new MethodInvocation(),
@@ -27,7 +31,7 @@ public final class Libraries {
                     new PublicFieldGetter(),
                     new FieldSetter(),
                     new PublicFieldSetter(),
-            });
+            };
         }
 
         private static class NewInstance implements JavaFunction {

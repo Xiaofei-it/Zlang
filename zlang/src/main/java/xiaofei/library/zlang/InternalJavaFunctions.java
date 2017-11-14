@@ -16,7 +16,11 @@ class InternalJavaFunctions extends JavaLibrary {
     static final InternalJavaFunctions INSTANCE = new InternalJavaFunctions();
 
     private InternalJavaFunctions() {
-        addFunctions(new JavaFunction[]{
+    }
+
+    @Override
+    protected JavaFunction[] onProvideJavaFunctions() {
+        return new JavaFunction[]{
                 new Test.Add2(),
                 new Test.Add3(),
 
@@ -89,7 +93,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
                 new Output.Print(),
                 new Output.Println(),
-        });
+        };
     }
 
     private static class Test {

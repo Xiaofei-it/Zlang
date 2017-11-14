@@ -1,5 +1,6 @@
 package xiaofei.library.zlang;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -7,17 +8,43 @@ import java.util.LinkedList;
  * Created by Xiaofei on 2017/9/30.
  */
 
-public class JavaLibrary {
+public abstract class JavaLibrary {
 
-    private final HashMap<String, HashMap<Integer, JavaFunction>> fixedArgsFunctions = new HashMap<String, HashMap<Integer, JavaFunction>>();
+    private final HashMap<String, HashMap<Integer, JavaFunction>> fixedArgsFunctions;
 
-    private final HashMap<String, LinkedList<JavaFunction>> varArgsFunctions = new HashMap<String, LinkedList<JavaFunction>>();
+    private final HashMap<String, LinkedList<JavaFunction>> varArgsFunctions;
 
-    public JavaLibrary() {
-
+    protected JavaLibrary() {
+        fixedArgsFunctions = new HashMap<>();
+        varArgsFunctions = new HashMap<>();
+        JavaFunction[] functions = onProvideJavaFunctions();
+        for (JavaFunction function : functions) {
+            addFunction(function);
+        }
     }
 
-    JavaFunction get(String functionName, int parameterNumber) {
+    protected abstract JavaFunction[] onProvideJavaFunctions();
+
+    private void addFunction(JavaFunction function) {
+        String name = function.getFunctionName();
+        if (function.isVarArgs()) {
+            LinkedList<JavaFunction> list = varArgsFunctions.get(name);
+            if (list == null) {
+                list = new LinkedList<>();
+                varArgsFunctions.put(name, list);
+            }
+            list.add(function);
+        } else {
+            HashMap<Integer, JavaFunction> map = fixedArgsFunctions.get(name);
+            if (map == null) {
+                map = new HashMap<>();
+                fixedArgsFunctions.put(name, map);
+            }
+            map.put(function.getParameterNumber(), function);
+        }
+    }
+
+    final JavaFunction get(String functionName, int parameterNumber) {
         HashMap<Integer, JavaFunction> functionMap = fixedArgsFunctions.get(functionName);
         if (functionMap != null) {
             JavaFunction function = functionMap.get(parameterNumber);
@@ -37,28 +64,38 @@ public class JavaLibrary {
         return null;
     }
 
-    public void addFunctions(JavaFunction[] functions) {
-        for (JavaFunction function : functions) {
-            addFunction(function);
-        }
-    }
+    public static class Builder {
 
-    public void addFunction(JavaFunction function) {
-        String name = function.getFunctionName();
-        if (function.isVarArgs()) {
-            LinkedList<JavaFunction> list = varArgsFunctions.get(name);
-            if (list == null) {
-                list = new LinkedList<>();
-                varArgsFunctions.put(name, list);
+        private final ArrayList<JavaFunction> functions;
+
+        public Builder() {
+            functions = new ArrayList<>();
+        }
+
+        public Builder addFunctions(JavaFunction[] functions) {
+            for (JavaFunction function : functions) {
+                addFunction(function);
             }
-            list.add(function);
-        } else {
-            HashMap<Integer, JavaFunction> map = fixedArgsFunctions.get(name);
-            if (map == null) {
-                map = new HashMap<>();
-                fixedArgsFunctions.put(name, map);
-            }
-            map.put(function.getParameterNumber(), function);
+            return this;
+        }
+
+        public Builder addFunction(JavaFunction function) {
+            functions.add(function);
+            return this;
+        }
+
+        public JavaLibrary build() {
+            return new JavaLibrary() {
+                @Override
+                protected JavaFunction[] onProvideJavaFunctions() {
+                    int length = functions.size();
+                    JavaFunction[] result = new JavaFunction[length];
+                    for (int i = 0; i < length; ++i) {
+                        result[i] = functions.get(i);
+                    }
+                    return result;
+                }
+            };
         }
     }
 }

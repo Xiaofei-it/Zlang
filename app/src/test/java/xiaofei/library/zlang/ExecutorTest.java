@@ -104,8 +104,7 @@ public class ExecutorTest {
 
     @Test
     public void test6() {
-        JavaLibrary javaLibrary = new JavaLibrary();
-        javaLibrary.addFunction(new JavaFunction() {
+        JavaLibrary javaLibrary = new JavaLibrary.Builder().addFunction(new JavaFunction() {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -125,7 +124,7 @@ public class ExecutorTest {
             public Object call(Object[] input) {
                 return input[0].hashCode();
             }
-        });
+        }).build();
         try {
             Library library = new Library.Builder()
                     .addJavaDependency(javaLibrary)
@@ -144,8 +143,7 @@ public class ExecutorTest {
 
     @Test
     public void test7() {
-        JavaLibrary javaLibrary = new JavaLibrary();
-        javaLibrary.addFunction(new JavaFunction() {
+        JavaLibrary javaLibrary = new JavaLibrary.Builder().addFunction(new JavaFunction() {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -165,7 +163,7 @@ public class ExecutorTest {
             public Object call(Object[] input) {
                 return input[0].hashCode();
             }
-        });
+        }).build();
         try {
             Library library = new Library.Builder()
                     .addJavaDependency(javaLibrary)
