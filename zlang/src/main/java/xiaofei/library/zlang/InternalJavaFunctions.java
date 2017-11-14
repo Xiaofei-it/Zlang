@@ -87,6 +87,8 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Reference.SoftRef(),
                 new Reference.WeakRef(),
 
+                new Output.Print(),
+                new Output.Println(),
         });
     }
 
@@ -1589,6 +1591,59 @@ class InternalJavaFunctions extends JavaLibrary {
             @Override
             public Object call(Object[] input) {
                 return new SoftReference<>(input[0]);
+            }
+        }
+
+    }
+
+    private static class Output {
+        private static class Print implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_print";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                System.out.print(input[0]);
+                return null;
+            }
+        }
+
+        private static class Println implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 0;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_println";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                if (input.length == 0) {
+                    System.out.println();
+                } else {
+                    System.out.println(input[0]);
+                }
+                return null;
             }
         }
 

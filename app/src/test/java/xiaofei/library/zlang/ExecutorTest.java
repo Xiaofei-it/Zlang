@@ -207,4 +207,14 @@ public class ExecutorTest {
         System.out.println(tmp);
         Assert.assertEquals(tmp, sum);
     }
+
+    @Test
+    public void test9() {
+        Library library = new Library.Builder()
+                .addFunctions("function f(a) {_println(a); _print(a); _println();}")
+                .build();
+        System.out.println(library.execute("f", new Object[]{null}));
+        System.out.println(library.execute("f", new Object[]{1}));
+        System.out.println(library.execute("f", new Object[]{1.2}));
+    }
 }
