@@ -1,6 +1,8 @@
 package xiaofei.library.zlang;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -18,10 +20,20 @@ class Storage {
 
     private ConcurrentHashMap<String, CopyOnWriteArrayList<Constructor<?>>> publicConstructorListMap;
 
+    private ConcurrentHashMap<String, ConcurrentHashMap<String, CopyOnWriteArrayList<Method>>> methodListMapMap;
+
+    private ConcurrentHashMap<String, ConcurrentHashMap<String, CopyOnWriteArrayList<Method>>> publicMethodListMapMap;
+
+    private ConcurrentHashMap<String, ConcurrentHashMap<String, Field>> fieldMapMap;
+
+    private ConcurrentHashMap<String, ConcurrentHashMap<String, Field>> publicFieldMapMap;
+
     private Storage() {
         classMap = new ConcurrentHashMap<>();
         constructorListMap = new ConcurrentHashMap<>();
         publicConstructorListMap = new ConcurrentHashMap<>();
+        methodListMapMap = new ConcurrentHashMap<>();
+        publicMethodListMapMap = new ConcurrentHashMap<>();
     }
 
     static Storage getInstance() {
@@ -110,6 +122,138 @@ class Storage {
                 constructorList.add(constructor); // Maybe add twice.
                 return constructor;
             }
+        }
+        return null;
+    }
+
+    Method getMethod(Class<?> clazz, String methodName, Object[] parameters) {
+        String className = clazz.getName();
+        ConcurrentHashMap<String, CopyOnWriteArrayList<Method>> methodListMap = methodListMapMap.get(className);
+        if (methodListMap == null) {
+            ConcurrentHashMap<String, CopyOnWriteArrayList<Method>> tmp = new ConcurrentHashMap<>();
+            methodListMap = methodListMapMap.putIfAbsent(className, tmp);
+            if (methodListMap == null) {
+                methodListMap = tmp;
+            }
+        }
+        CopyOnWriteArrayList<Method> methodList = methodListMap.get(methodName);
+        if (methodList == null) {
+            CopyOnWriteArrayList<Method> tmp = new CopyOnWriteArrayList<>();
+            methodList = methodListMap.putIfAbsent(className, tmp);
+            if (methodList == null) {
+                methodList = tmp;
+            }
+        }
+        Iterator<Method> iterator = methodList.iterator();
+        while (iterator.hasNext()) {
+            Method method = iterator.next();
+            if (match(parameters, method.getParameterTypes())) {
+                return method;
+            }
+        }
+        while (clazz != Object.class) {
+            for (Method method : clazz.getDeclaredMethods()) {
+                if (!method.getName().equals(methodName)) {
+                    continue;
+                }
+                if (match(parameters, method.getParameterTypes())) {
+                    methodList.add(method); // Maybe add twice.
+                    return method;
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+        return null;
+    }
+
+    Method getPublicMethod(Class<?> clazz, String methodName, Object[] parameters) {
+        String className = clazz.getName();
+        ConcurrentHashMap<String, CopyOnWriteArrayList<Method>> methodListMap = publicMethodListMapMap.get(className);
+        if (methodListMap == null) {
+            ConcurrentHashMap<String, CopyOnWriteArrayList<Method>> tmp = new ConcurrentHashMap<>();
+            methodListMap = publicMethodListMapMap.putIfAbsent(className, tmp);
+            if (methodListMap == null) {
+                methodListMap = tmp;
+            }
+        }
+        CopyOnWriteArrayList<Method> methodList = methodListMap.get(methodName);
+        if (methodList == null) {
+            CopyOnWriteArrayList<Method> tmp = new CopyOnWriteArrayList<>();
+            methodList = methodListMap.putIfAbsent(className, tmp);
+            if (methodList == null) {
+                methodList = tmp;
+            }
+        }
+        Iterator<Method> iterator = methodList.iterator();
+        while (iterator.hasNext()) {
+            Method method = iterator.next();
+            if (match(parameters, method.getParameterTypes())) {
+                return method;
+            }
+        }
+        for (Method method : clazz.getMethods()) {
+            if (!method.getName().equals(methodName)) {
+                continue;
+            }
+            if (match(parameters, method.getParameterTypes())) {
+                methodList.add(method); // Maybe add twice.
+                return method;
+            }
+        }
+        return null;
+    }
+
+    Field getField(Class<?> clazz, String fieldName) {
+        String className = clazz.getName();
+        ConcurrentHashMap<String, Field> fieldMap = fieldMapMap.get(className);
+        if (fieldMap == null) {
+            ConcurrentHashMap<String, Field> tmp = new ConcurrentHashMap<>();
+            fieldMap = fieldMapMap.putIfAbsent(className, tmp);
+            if (fieldMap == null) {
+                fieldMap = tmp;
+            }
+        }
+        Field result = fieldMap.get(fieldName);
+        if (result != null) {
+            return result;
+        }
+        while (clazz != Object.class) {
+            try {
+                result = clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+
+            }
+            if (result != null) {
+                fieldMap.putIfAbsent(fieldName, result);
+                return result;
+            }
+            clazz = clazz.getSuperclass();
+        }
+        return null;
+    }
+
+    Field getPublicField(Class<?> clazz, String fieldName) {
+        String className = clazz.getName();
+        ConcurrentHashMap<String, Field> fieldMap = publicFieldMapMap.get(className);
+        if (fieldMap == null) {
+            ConcurrentHashMap<String, Field> tmp = new ConcurrentHashMap<>();
+            fieldMap = publicFieldMapMap.putIfAbsent(className, tmp);
+            if (fieldMap == null) {
+                fieldMap = tmp;
+            }
+        }
+        Field result = fieldMap.get(fieldName);
+        if (result != null) {
+            return result;
+        }
+        try {
+            result = clazz.getField(fieldName);
+            if (result != null) {
+                fieldMap.putIfAbsent(fieldName, result);
+                return result;
+            }
+        } catch (NoSuchFieldException e) {
+            return null;
         }
         return null;
     }

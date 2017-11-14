@@ -774,7 +774,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "invoke_method";
+                return "_invoke_method";
             }
 
             @Override
@@ -786,33 +786,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (length >= 1) {
                     System.arraycopy(input, 2, parameters, 0, length);
                 }
-                Method foundMethod = null;
-                do {
-                    Method[] methods = clazz.getDeclaredMethods();
-                    for (Method method : methods) {
-                        if (!method.getName().equals(methodName)) {
-                            continue;
-                        }
-                        Class<?>[] parameterTypes = method.getParameterTypes();
-                        if (parameterTypes.length != length) {
-                            continue;
-                        }
-                        boolean found = true;
-                        for (int i = 0; i < length; ++i) {
-                            if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
-                                found = false;
-                                break;
-                            }
-                        }
-                        if (found) {
-                            foundMethod = method;
-                            break;
-                        }
-                    }
-                    if (clazz != Object.class) {
-                        clazz = clazz.getSuperclass();
-                    }
-                } while (foundMethod != null && clazz != Object.class);
+                Method foundMethod = STORAGE.getMethod(clazz, methodName, parameters);
                 if (foundMethod == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD,
                             "Class: " + input[0] + " Method name: "  + methodName + " Parameter number: " + length);
@@ -843,7 +817,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "invoke_public_method";
+                return "_invoke_public_method";
             }
 
             @Override
@@ -855,28 +829,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (length >= 1) {
                     System.arraycopy(input, 1, parameters, 0, length);
                 }
-                Method foundMethod = null;
-                Method[] methods = clazz.getMethods();
-                for (Method method : methods) {
-                    if (!method.getName().equals(methodName)) {
-                        continue;
-                    }
-                    Class<?>[] parameterTypes = method.getParameterTypes();
-                    if (parameterTypes.length != length) {
-                        continue;
-                    }
-                    boolean found = true;
-                    for (int i = 0; i < length; ++i) {
-                        if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
-                            found = false;
-                            break;
-                        }
-                    }
-                    if (found) {
-                        foundMethod = method;
-                        break;
-                    }
-                }
+                Method foundMethod = STORAGE.getPublicMethod(clazz, methodName, parameters);
                 if (foundMethod == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD,
                             "Class: " + input[0] + " Method name: "  + methodName + " Parameter number: " + length);
@@ -907,24 +860,14 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "get_field";
+                return "_get_field";
             }
 
             @Override
             public Object call(Object[] input) {
                 Class<?> clazz = input[0].getClass();
                 String name = (String) input[1];
-                Field field = null;
-                do {
-                    try {
-                        field = clazz.getDeclaredField(name);
-                    } catch (NoSuchFieldException e) {
-
-                    }
-                    if (clazz != Object.class) {
-                        clazz = clazz.getSuperclass();
-                    }
-                } while (field == null && clazz != Object.class);
+                Field field = STORAGE.getField(clazz, name);
                 if (field == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
                             "Class: " + input[0] + " Field name : " + name);
@@ -953,23 +896,23 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "get_field";
+                return "_get_public_field";
             }
 
             @Override
             public Object call(Object[] input) {
                 Class<?> clazz = input[0].getClass();
                 String name = (String) input[1];
-                Field field = null;
-                try {
-                    field = clazz.getField(name);
-                    if (!field.isAccessible()) {
-                        field.setAccessible(true);
-                    }
-                    return field.get(input[0]);
-                } catch (NoSuchFieldException e) {
+                Field field = STORAGE.getPublicField(clazz, name);
+                if (field == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
                             "Class: " + input[0] + " Field name : " + name);
+                }
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                try {
+                    return field.get(input[0]);
                 } catch (IllegalAccessException e) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
                 }
@@ -996,17 +939,7 @@ class InternalJavaFunctions extends JavaLibrary {
             public Object call(Object[] input) {
                 Class<?> clazz = input[0].getClass();
                 String name = (String) input[1];
-                Field field = null;
-                do {
-                    try {
-                        field = clazz.getDeclaredField(name);
-                    } catch (NoSuchFieldException e) {
-
-                    }
-                    if (clazz != Object.class) {
-                        clazz = clazz.getSuperclass();
-                    }
-                } while (field == null && clazz != Object.class);
+                Field field = STORAGE.getField(clazz, name);
                 if (field == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
                             "Class: " + input[0] + " Field name : " + name);
@@ -1043,20 +976,21 @@ class InternalJavaFunctions extends JavaLibrary {
             public Object call(Object[] input) {
                 Class<?> clazz = input[0].getClass();
                 String name = (String) input[1];
-                Field field = null;
-                try {
-                    field = clazz.getField(name);
-                    if (!field.isAccessible()) {
-                        field.setAccessible(true);
-                    }
-                    field.set(input[0], input[2]);
-                    return null;
-                } catch (NoSuchFieldException e) {
+                Field field = STORAGE.getPublicField(clazz, name);
+                if (field == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
                             "Class: " + input[0] + " Field name : " + name);
+                }
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                try {
+                    field.set(input[0], input[2]);
+                    return null;
                 } catch (IllegalAccessException e) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
                 }
+
             }
         }
     }
