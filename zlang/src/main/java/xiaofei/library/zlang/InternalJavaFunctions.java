@@ -2,7 +2,10 @@ package xiaofei.library.zlang;
 
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +16,8 @@ import java.util.HashSet;
 
 class InternalJavaFunctions extends JavaLibrary {
 
+    private static final Storage STORAGE = Storage.getInstance();
+
     static final InternalJavaFunctions INSTANCE = new InternalJavaFunctions();
 
     private InternalJavaFunctions() {
@@ -21,8 +26,6 @@ class InternalJavaFunctions extends JavaLibrary {
     @Override
     protected JavaFunction[] onProvideJavaFunctions() {
         return new JavaFunction[]{
-                new Test.Add2(),
-                new Test.Add3(),
 
                 new Array.GetLength(),
                 new Array.NewArray(),
@@ -32,45 +35,6 @@ class InternalJavaFunctions extends JavaLibrary {
                 new ObjectMethods.Compare(),
                 new ObjectMethods.Equal(),
                 new ObjectMethods.GetClass(),
-
-                new Clazz.ClassCast(),
-                new Clazz.ForName(),
-                new Clazz.GetCanonicalName(),
-                new Clazz.GetSimpleName(),
-                new Clazz.GetName(),
-                new Clazz.GetConstructor(),
-                new Clazz.GetDeclaredConstructor(),
-                new Clazz.GetMethod(),
-                new Clazz.GetDeclaredMethod(),
-                new Clazz.GetField(),
-                new Clazz.GetDeclaredField(),
-                new Clazz.GetSuperclass(),
-                new Clazz.InstanceOf(),
-                new Clazz.IsAnonymousClass(),
-                new Clazz.IsArray(),
-                new Clazz.IsAssignableFrom(),
-                new Clazz.IsEnum(),
-                new Clazz.IsLocalClass(),
-                new Clazz.IsPrimitive(),
-                new Clazz.IsMemberClass(),
-                new Clazz.IsInterface(),
-                new Clazz.GetEnclosingClass(),
-                new Clazz.GetDeclaringClass(),
-                new Clazz.GetEnclosingMethod(),
-
-                new Method.GetName(),
-                new Method.GetReturnType(),
-                new Method.GetParameterTypes(),
-                new Method.Invoke(),
-
-                new Field.Get(),
-                new Field.Set(),
-                new Field.GetName(),
-                new Field.GetType(),
-
-                new Constructor.GetName(),
-                new Constructor.GetParameterTypes(),
-                new Constructor.NewInstance(),
 
                 new Map.ContainsKey(),
                 new Map.ContainsValue(),
@@ -93,53 +57,32 @@ class InternalJavaFunctions extends JavaLibrary {
 
                 new Output.Print(),
                 new Output.Println(),
+
+                new Reflection.NewInstance(),
+                new Reflection.NewInstancePublic(),
+                new Reflection.MethodInvocation(),
+                new Reflection.PublicMethodInvocation(),
+                new Reflection.FieldGetter(),
+                new Reflection.PublicFieldGetter(),
+                new Reflection.FieldSetter(),
+                new Reflection.PublicFieldSetter(),
         };
     }
 
-    private static class Test {
-        private static class Add2 implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
+    private static Class<?> obtainClass(Object input) {
+        if (input instanceof Class<?>) {
+            return  (Class<?>) input;
+        } else if (input instanceof String) {
+            try {
+                return STORAGE.getClass((String) input);
+            } catch (ClassNotFoundException e) {
+                throw new ZlangRuntimeException(ZlangRuntimeError.CLASS_NOT_FOUND, "" + input);
             }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_test_add";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return (int) input[0] + (int) input[1];
-            }
-        }
-
-        private static class Add3 implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-            @Override
-            public int getParameterNumber() {
-                return 3;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_test_add";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return (int) input[0] + (int) input[1] + (int) input[2];
-            }
+        } else {
+            throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input);
         }
     }
+
 
     private static class ObjectMethods {
         private static class Equal implements JavaFunction {
@@ -289,18 +232,8 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public Object call(Object[] input) {
-                Class<?> clazz;
-                if (input[0] instanceof Class<?>) {
-                    clazz = (Class<?>) input[0];
-                } else if (input[0] instanceof String) {
-                    try {
-                        clazz = Class.forName((String) input[0]);
-                    } catch (ClassNotFoundException e) {
-                        throw new ZlangRuntimeException(ZlangRuntimeError.CLASS_NOT_FOUND, "" + input[0]);
-                    }
-                } else {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
-                }
+                Class<?> clazz =  obtainClass(input[0]);
+                // TODO
                 if (input.length == 2 && input[1] instanceof int[]) {
                     return java.lang.reflect.Array.newInstance(clazz, (int[]) input[1]);
                 }
@@ -313,919 +246,6 @@ class InternalJavaFunctions extends JavaLibrary {
                     dimensions[i] = (int) input[i + 1];
                 }
                 return java.lang.reflect.Array.newInstance(clazz, dimensions);
-            }
-        }
-    }
-
-    private static class Clazz {
-        private static class ClassCast implements JavaFunction {
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_cast";
-            }
-
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).cast(input[1]);
-            }
-        }
-
-        private static class ForName implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_for_name";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                try {
-                    return Class.forName((String) input[0]);
-                } catch (ClassNotFoundException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.CLASS_NOT_FOUND, input[0].toString());
-                }
-            }
-        }
-
-        private static class GetName implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_name";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).getName();
-            }
-        }
-
-        private static class GetSimpleName implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_simple_name";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).getSimpleName();
-            }
-        }
-
-        private static class GetCanonicalName implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_canonical_name";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).getCanonicalName();
-            }
-        }
-
-        private static class GetConstructor  implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_constructor";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                int length = input.length;
-                if (length == 2 && input[1] instanceof Class<?>[]) {
-                    try {
-                        return ((Class<?>) input[0]).getConstructor((Class<?>[]) input[1]);
-                    } catch (NoSuchMethodException e) {
-                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, input[0].toString());
-                    }
-                }
-                Class<?>[] classes = new Class<?>[length - 1];
-                for (int i = 0; i < length - 1; ++i) {
-                    classes[i] = (Class<?>) input[i + 1];
-                }
-                try {
-                    return ((Class<?>) input[0]).getConstructor(classes);
-                } catch (NoSuchMethodException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, input[0].toString());
-                }
-            }
-        }
-
-        private static class GetDeclaredConstructor implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_declared_constructor";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                int length = input.length;
-                if (length == 2 && input[1] instanceof Class<?>[]) {
-                    try {
-                        return ((Class<?>) input[0]).getDeclaredConstructor((Class<?>[]) input[1]);
-                    } catch (NoSuchMethodException e) {
-                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, input[0].toString());
-                    }
-                }
-                Class<?>[] classes = new Class<?>[length - 1];
-                for (int i = 0; i < length - 1; ++i) {
-                    classes[i] = (Class<?>) input[i + 1];
-                }
-                try {
-                    return ((Class<?>) input[0]).getDeclaredConstructor(classes);
-                } catch (NoSuchMethodException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, input[0].toString());
-                }
-            }
-        }
-
-        private static class GetField implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_field";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                try {
-                    return ((Class<?>) input[0]).getField((String) input[1]);
-                } catch (NoSuchFieldException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD, "Class: " + input[0] + " Field: " + input[1]);
-                }
-            }
-        }
-
-        private static class GetDeclaredField implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_declared_field";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                try {
-                    return ((Class<?>) input[0]).getDeclaredField((String) input[1]);
-                } catch (NoSuchFieldException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD, "Class: " + input[0] + " Field: " + input[1]);
-                }
-            }
-        }
-
-        private static class GetMethod implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_method";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                // class, string, class...
-                int length = input.length;
-                if (length == 3 && input[2] instanceof Class<?>[]) {
-                    try {
-                        return ((Class<?>) input[0]).getMethod((String) input[1], (Class<?>[]) input[2]);
-                    } catch (NoSuchMethodException e) {
-                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD, "Class: " + input[0] + " Method: " + input[1]);
-                    }
-                }
-                Class<?>[] classes = new Class<?>[length - 2];
-                for (int i = 0; i < length - 2; ++i) {
-                    classes[i] = (Class<?>) input[i + 2];
-                }
-                try {
-                    return ((Class<?>) input[0]).getMethod((String) input[1], classes);
-                } catch (NoSuchMethodException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD, "Class: " + input[0] + " Method: " + input[1]);
-                }
-            }
-        }
-
-        private static class GetDeclaredMethod implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_declared_method";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                // class, string, class...
-                int length = input.length;
-                if (length == 3 && input[2] instanceof Class<?>[]) {
-                    try {
-                        return ((Class<?>) input[0]).getDeclaredMethod((String) input[1], (Class<?>[]) input[2]);
-                    } catch (NoSuchMethodException e) {
-                        throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD, "Class: " + input[0] + " Method: " + input[1]);
-                    }
-                }
-                Class<?>[] classes = new Class<?>[length - 2];
-                for (int i = 0; i < length - 2; ++i) {
-                    classes[i] = (Class<?>) input[i + 2];
-                }
-                try {
-                    return ((Class<?>) input[0]).getDeclaredMethod((String) input[1], classes);
-                } catch (NoSuchMethodException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD, "Class: " + input[0] + " Method: " + input[1]);
-                }
-            }
-        }
-
-        private static class GetSuperclass implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_class_get_superclass";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).getSuperclass();
-            }
-        }
-
-        private static class IsAnonymousClass implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_is_anonymous_class";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).isAnonymousClass();
-            }
-        }
-
-        private static class IsArray implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_is_array";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).isArray();
-            }
-        }
-
-        private static class IsAssignableFrom implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_is_assignable_from";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).isAssignableFrom((Class<?>) input[1]);
-            }
-        }
-
-        private static class IsEnum implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_is_enum";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).isEnum();
-            }
-        }
-
-        private static class InstanceOf implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_instance_of";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[1]).isInstance(input[0]);
-            }
-        }
-
-        private static class IsInterface implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_is_interface";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).isInterface();
-            }
-        }
-
-        private static class IsLocalClass implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_is_local_class";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).isLocalClass();
-            }
-        }
-
-        private static class IsMemberClass implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_is_member_class";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).isMemberClass();
-            }
-        }
-
-        private static class IsPrimitive implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_is_primitive";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).isPrimitive();
-            }
-        }
-
-        private static class GetEnclosingClass implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_get_enclosing_class";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).getEnclosingClass();
-            }
-        }
-
-        private static class GetDeclaringClass implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_get_declaring_class";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).getDeclaringClass();
-            }
-        }
-
-        private static class GetEnclosingMethod implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_get_enclosing_method";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((Class<?>) input[0]).getEnclosingMethod();
-            }
-        }
-    }
-
-    private static class Field {
-
-        private static class GetName implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_field_name";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((java.lang.reflect.Field) input[0]).getName();
-            }
-        }
-
-        private static class GetType implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_field_type";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((java.lang.reflect.Field) input[0]).getType();
-            }
-        }
-
-        private static class Set implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 3;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_field_set";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                java.lang.reflect.Field field = (java.lang.reflect.Field) input[0];
-                try {
-                    field.setAccessible(true);
-                    field.set(input[1], input[2]);
-                    return null;
-                } catch (IllegalAccessException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
-                }
-            }
-        }
-
-        private static class Get implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_field_get";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                java.lang.reflect.Field field = (java.lang.reflect.Field) input[0];
-                try {
-                    field.setAccessible(true);
-                    return field.get(input[1]);
-                } catch (IllegalAccessException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
-                }
-            }
-        }
-    }
-
-    private static class Method {
-
-        private static class GetName implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_method_name";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((java.lang.reflect.Method) input[0]).getName();
-            }
-        }
-
-        private static class GetParameterTypes implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_method_parameter_types";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((java.lang.reflect.Method) input[0]).getParameterTypes();
-            }
-        }
-
-        private static class GetReturnType implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_method_return_type";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((java.lang.reflect.Method) input[0]).getReturnType();
-            }
-        }
-
-        private static class Invoke implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 2;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_method_invoke";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                int length = input.length - 2;
-                if (length == 3 && input[2] instanceof Object[]) {
-                    java.lang.reflect.Method method = (java.lang.reflect.Method) input[0];
-                    try {
-                        method.setAccessible(true);
-                        return method.invoke(input[1], (Object[]) input[2]);
-                    } catch (IllegalAccessException e) {
-                        throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, method.toString());
-                    } catch (InvocationTargetException e) {
-                        throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, method.toString());
-                    }
-                }
-                Object[] parameters = new Object[length];
-                for (int i = 0; i < length; ++i) {
-                    parameters[i] = input[i + 2];
-                }
-                java.lang.reflect.Method method = (java.lang.reflect.Method) input[0];
-                try {
-                    method.setAccessible(true);
-                    return method.invoke(input[1], parameters);
-                } catch (IllegalAccessException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, method.toString());
-                } catch (InvocationTargetException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, method.toString());
-                }
-            }
-        }
-    }
-
-    private static class Constructor {
-        private static class GetName implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_constructor_name";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((java.lang.reflect.Constructor) input[0]).getName();
-            }
-        }
-
-        private static class GetParameterTypes implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_constructor_parameter_types";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return ((java.lang.reflect.Constructor) input[0]).getParameterTypes();
-            }
-        }
-
-        private static class NewInstance implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_constructor_new_instance";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                int length = input.length - 1;
-                java.lang.reflect.Constructor constructor = (java.lang.reflect.Constructor) input[0];
-                try {
-                    if (length == 2 && input[1] instanceof Object[]) {
-                        constructor.setAccessible(true);
-                        return constructor.newInstance((Object[]) input[1]);
-                    }
-                    Object[] parameters = new Object[length];
-                    for (int i = 0; i < length; ++i) {
-                        parameters[i] = input[i + 1];
-                    }
-                    constructor.setAccessible(true);
-                    return constructor.newInstance(parameters);
-                } catch (InvocationTargetException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, constructor.toString());
-                } catch (InstantiationException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, constructor.toString());
-                } catch (IllegalAccessException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, constructor.toString());
-                }
             }
         }
     }
@@ -1337,7 +357,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "_map_get";
+                return "_map_contains_key";
             }
 
             @Override
@@ -1360,7 +380,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "_map_get";
+                return "_map_contains_value";
             }
 
             @Override
@@ -1538,7 +558,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "_is_empty";
+                return "_remove";
             }
 
             @Override
@@ -1651,6 +671,428 @@ class InternalJavaFunctions extends JavaLibrary {
             }
         }
 
+    }
+
+    private static class Reflection {
+
+        private static class NewInstance implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_new_instance";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                int length = input.length - 1;
+                Object[] parameters = new Object[length];
+                if (length >= 1) {
+                    System.arraycopy(input, 1, parameters, 0, length);
+                }
+                Constructor[] constructors = obtainClass(input[0]).getDeclaredConstructors();
+                Constructor foundConstructor = null;
+                for (Constructor constructor : constructors) {
+                    Class<?>[] parameterTypes = constructor.getParameterTypes();
+                    if (parameterTypes.length != length) {
+                        continue;
+                    }
+                    boolean found = true;
+                    for (int i = 0; i < length; ++i) {
+                        if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
+                            found = false;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        foundConstructor = constructor;
+                        break;
+                    }
+                }
+                if (foundConstructor == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, "Class: " + input[0] + " Parameter number: " + length);
+                }
+                if (!foundConstructor.isAccessible()) {
+                    foundConstructor.setAccessible(true);
+                }
+                try {
+                    return foundConstructor.newInstance(parameters);
+                } catch (InstantiationException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
+                } catch (InvocationTargetException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
+                }
+            }
+        }
+
+        private static class NewInstancePublic implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_new_instance_public";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                int length = input.length - 1;
+                Object[] parameters = new Object[length];
+                if (length >= 1) {
+                    System.arraycopy(input, 1, parameters, 0, length);
+                }
+                Constructor[] constructors = ((Class<?>) input[0]).getConstructors();
+                Constructor foundConstructor = null;
+                for (Constructor constructor : constructors) {
+                    Class<?>[] parameterTypes = constructor.getParameterTypes();
+                    if (parameterTypes.length != length) {
+                        continue;
+                    }
+                    boolean found = true;
+                    for (int i = 0; i < length; ++i) {
+                        if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
+                            found = false;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        foundConstructor = constructor;
+                        break;
+                    }
+                }
+                if (foundConstructor == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, "Class: " + input[0] + " Parameter number: " + length);
+                }
+                if (!foundConstructor.isAccessible()) {
+                    foundConstructor.setAccessible(true);
+                }
+                try {
+                    return foundConstructor.newInstance(parameters);
+                } catch (InstantiationException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
+                } catch (InvocationTargetException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
+                }
+            }
+        }
+
+        private static class MethodInvocation implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "invoke_method";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = input[0].getClass();
+                String methodName = (String) input[1];
+                int length = input.length - 2;
+                Object[] parameters = new Object[length];
+                if (length >= 1) {
+                    System.arraycopy(input, 2, parameters, 0, length);
+                }
+                Method foundMethod = null;
+                do {
+                    Method[] methods = clazz.getDeclaredMethods();
+                    for (Method method : methods) {
+                        if (!method.getName().equals(methodName)) {
+                            continue;
+                        }
+                        Class<?>[] parameterTypes = method.getParameterTypes();
+                        if (parameterTypes.length != length) {
+                            continue;
+                        }
+                        boolean found = true;
+                        for (int i = 0; i < length; ++i) {
+                            if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
+                                found = false;
+                                break;
+                            }
+                        }
+                        if (found) {
+                            foundMethod = method;
+                            break;
+                        }
+                    }
+                    if (clazz != Object.class) {
+                        clazz = clazz.getSuperclass();
+                    }
+                } while (foundMethod != null && clazz != Object.class);
+                if (foundMethod == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD,
+                            "Class: " + input[0] + " Method name: "  + methodName + " Parameter number: " + length);
+                }
+                if (!foundMethod.isAccessible()) {
+                    foundMethod.setAccessible(true);
+                }
+                try {
+                    return foundMethod.invoke(input[0], parameters);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
+                } catch (InvocationTargetException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
+                }
+            }
+        }
+
+        private static class PublicMethodInvocation implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "invoke_public_method";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = input[0].getClass();
+                String methodName = (String) input[1];
+                int length = input.length - 2;
+                Object[] parameters = new Object[length];
+                if (length >= 1) {
+                    System.arraycopy(input, 1, parameters, 0, length);
+                }
+                Method foundMethod = null;
+                Method[] methods = clazz.getMethods();
+                for (Method method : methods) {
+                    if (!method.getName().equals(methodName)) {
+                        continue;
+                    }
+                    Class<?>[] parameterTypes = method.getParameterTypes();
+                    if (parameterTypes.length != length) {
+                        continue;
+                    }
+                    boolean found = true;
+                    for (int i = 0; i < length; ++i) {
+                        if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
+                            found = false;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        foundMethod = method;
+                        break;
+                    }
+                }
+                if (foundMethod == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD,
+                            "Class: " + input[0] + " Method name: "  + methodName + " Parameter number: " + length);
+                }
+                if (!foundMethod.isAccessible()) {
+                    foundMethod.setAccessible(true);
+                }
+                try {
+                    return foundMethod.invoke(input[0], parameters);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
+                } catch (InvocationTargetException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
+                }
+            }
+        }
+
+        private static class FieldGetter implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "get_field";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = input[0].getClass();
+                String name = (String) input[1];
+                Field field = null;
+                do {
+                    try {
+                        field = clazz.getDeclaredField(name);
+                    } catch (NoSuchFieldException e) {
+
+                    }
+                    if (clazz != Object.class) {
+                        clazz = clazz.getSuperclass();
+                    }
+                } while (field == null && clazz != Object.class);
+                if (field == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                            "Class: " + input[0] + " Field name : " + name);
+                }
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                try {
+                    return field.get(input[0]);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
+                }
+            }
+        }
+
+        private static class PublicFieldGetter implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "get_field";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = input[0].getClass();
+                String name = (String) input[1];
+                Field field = null;
+                try {
+                    field = clazz.getField(name);
+                    if (!field.isAccessible()) {
+                        field.setAccessible(true);
+                    }
+                    return field.get(input[0]);
+                } catch (NoSuchFieldException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                            "Class: " + input[0] + " Field name : " + name);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
+                }
+            }
+        }
+
+        private static class FieldSetter implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 3;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "set_field";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = input[0].getClass();
+                String name = (String) input[1];
+                Field field = null;
+                do {
+                    try {
+                        field = clazz.getDeclaredField(name);
+                    } catch (NoSuchFieldException e) {
+
+                    }
+                    if (clazz != Object.class) {
+                        clazz = clazz.getSuperclass();
+                    }
+                } while (field == null && clazz != Object.class);
+                if (field == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                            "Class: " + input[0] + " Field name : " + name);
+                }
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                try {
+                    field.set(input[0], input[2]);
+                    return null;
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
+                }
+            }
+        }
+
+        private static class PublicFieldSetter implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 3;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "set_field";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = input[0].getClass();
+                String name = (String) input[1];
+                Field field = null;
+                try {
+                    field = clazz.getField(name);
+                    if (!field.isAccessible()) {
+                        field.setAccessible(true);
+                    }
+                    field.set(input[0], input[2]);
+                    return null;
+                } catch (NoSuchFieldException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                            "Class: " + input[0] + " Field name : " + name);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
+                }
+            }
+        }
     }
     // TODO annotation
 }
