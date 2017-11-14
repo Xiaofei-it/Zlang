@@ -698,25 +698,8 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (length >= 1) {
                     System.arraycopy(input, 1, parameters, 0, length);
                 }
-                Constructor[] constructors = obtainClass(input[0]).getDeclaredConstructors();
-                Constructor foundConstructor = null;
-                for (Constructor constructor : constructors) {
-                    Class<?>[] parameterTypes = constructor.getParameterTypes();
-                    if (parameterTypes.length != length) {
-                        continue;
-                    }
-                    boolean found = true;
-                    for (int i = 0; i < length; ++i) {
-                        if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
-                            found = false;
-                            break;
-                        }
-                    }
-                    if (found) {
-                        foundConstructor = constructor;
-                        break;
-                    }
-                }
+                Class<?> clazz = obtainClass(input[0]);
+                Constructor foundConstructor = STORAGE.getConstructor(clazz, parameters);
                 if (foundConstructor == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, "Class: " + input[0] + " Parameter number: " + length);
                 }
@@ -758,25 +741,8 @@ class InternalJavaFunctions extends JavaLibrary {
                 if (length >= 1) {
                     System.arraycopy(input, 1, parameters, 0, length);
                 }
-                Constructor[] constructors = ((Class<?>) input[0]).getConstructors();
-                Constructor foundConstructor = null;
-                for (Constructor constructor : constructors) {
-                    Class<?>[] parameterTypes = constructor.getParameterTypes();
-                    if (parameterTypes.length != length) {
-                        continue;
-                    }
-                    boolean found = true;
-                    for (int i = 0; i < length; ++i) {
-                        if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
-                            found = false;
-                            break;
-                        }
-                    }
-                    if (found) {
-                        foundConstructor = constructor;
-                        break;
-                    }
-                }
+                Class<?> clazz = obtainClass(input[0]);
+                Constructor foundConstructor = STORAGE.getPublicConstructor(clazz, parameters);
                 if (foundConstructor == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, "Class: " + input[0] + " Parameter number: " + length);
                 }
@@ -803,7 +769,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public int getParameterNumber() {
-                return 1;
+                return 2;
             }
 
             @Override
@@ -872,7 +838,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public int getParameterNumber() {
-                return 1;
+                return 2;
             }
 
             @Override
