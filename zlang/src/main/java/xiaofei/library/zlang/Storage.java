@@ -30,8 +30,6 @@ class Storage {
 
     private ConcurrentHashMap<String, CopyOnWriteArrayList<Constructor<?>>> constructorListMap;
 
-    private ConcurrentHashMap<String, CopyOnWriteArrayList<Constructor<?>>> publicConstructorListMap;
-
     private ConcurrentHashMap<String, ConcurrentHashMap<String, CopyOnWriteArrayList<Method>>> methodListMapMap;
 
     private ConcurrentHashMap<String, ConcurrentHashMap<String, CopyOnWriteArrayList<Method>>> publicMethodListMapMap;
@@ -43,7 +41,6 @@ class Storage {
     private Storage() {
         classMap = new ConcurrentHashMap<>();
         constructorListMap = new ConcurrentHashMap<>();
-        publicConstructorListMap = new ConcurrentHashMap<>();
         methodListMapMap = new ConcurrentHashMap<>();
         publicMethodListMapMap = new ConcurrentHashMap<>();
         fieldMapMap = new ConcurrentHashMap<>();
@@ -113,32 +110,6 @@ class Storage {
             }
         }
         for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            if (matchParameters(parameters, constructor.getParameterTypes())) {
-                constructorList.add(constructor); // Maybe add twice.
-                return constructor;
-            }
-        }
-        return null;
-    }
-
-    Constructor<?> getPublicConstructor(Class<?> clazz, Object[] parameters) {
-        String className = clazz.getName();
-        CopyOnWriteArrayList<Constructor<?>> constructorList = publicConstructorListMap.get(className);
-        if (constructorList == null) {
-            CopyOnWriteArrayList<Constructor<?>> tmp = new CopyOnWriteArrayList<>();
-            constructorList = publicConstructorListMap.putIfAbsent(className, tmp);
-            if (constructorList == null) {
-                constructorList = tmp;
-            }
-        }
-        Iterator<Constructor<?>> iterator = constructorList.iterator();
-        while (iterator.hasNext()) {
-            Constructor<?> constructor = iterator.next();
-            if (matchParameters(parameters, constructor.getParameterTypes())) {
-                return constructor;
-            }
-        }
-        for (Constructor<?> constructor : clazz.getConstructors()) {
             if (matchParameters(parameters, constructor.getParameterTypes())) {
                 constructorList.add(constructor); // Maybe add twice.
                 return constructor;

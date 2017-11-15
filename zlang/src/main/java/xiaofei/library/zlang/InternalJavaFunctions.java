@@ -59,7 +59,6 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Output.Println(),
 
                 new Reflection.NewInstance(),
-                new Reflection.NewInstancePublic(),
                 new Reflection.MethodInvocation(),
                 new Reflection.PublicMethodInvocation(),
                 new Reflection.FieldGetter(),
@@ -700,49 +699,6 @@ class InternalJavaFunctions extends JavaLibrary {
                 }
                 Class<?> clazz = obtainClass(input[0]);
                 Constructor foundConstructor = STORAGE.getConstructor(clazz, parameters);
-                if (foundConstructor == null) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, "Class: " + input[0] + " Parameter number: " + length);
-                }
-                if (!foundConstructor.isAccessible()) {
-                    foundConstructor.setAccessible(true);
-                }
-                try {
-                    return foundConstructor.newInstance(parameters);
-                } catch (InstantiationException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
-                } catch (IllegalAccessException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
-                } catch (InvocationTargetException e) {
-                    throw new ZlangRuntimeException(ZlangRuntimeError.NEW_INSTANCE_ERROR, foundConstructor.toString());
-                }
-            }
-        }
-
-        private static class NewInstancePublic implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return true;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_new_instance_public";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                int length = input.length - 1;
-                Object[] parameters = new Object[length];
-                if (length >= 1) {
-                    System.arraycopy(input, 1, parameters, 0, length);
-                }
-                Class<?> clazz = obtainClass(input[0]);
-                Constructor foundConstructor = STORAGE.getPublicConstructor(clazz, parameters);
                 if (foundConstructor == null) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_CONSTRUCTOR, "Class: " + input[0] + " Parameter number: " + length);
                 }
