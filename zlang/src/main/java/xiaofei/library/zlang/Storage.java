@@ -12,6 +12,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 
 class Storage {
+
+    private static final ConcurrentHashMap<Class<?>, Class<?>> PRIMITIVE_CLASSES = new ConcurrentHashMap<Class<?>, Class<?>>() {
+        {
+            put(Byte.class, byte.class);
+            put(Character.class, char.class);
+            put(Short.class, short.class);
+            put(Integer.class, int.class);
+            put(Long.class, long.class);
+            put(Float.class, float.class);
+            put(Double.class, double.class);
+        }
+    };
     private static volatile Storage instance = null;
 
     private ConcurrentHashMap<String, Class<?>> classMap;
@@ -34,6 +46,8 @@ class Storage {
         publicConstructorListMap = new ConcurrentHashMap<>();
         methodListMapMap = new ConcurrentHashMap<>();
         publicMethodListMapMap = new ConcurrentHashMap<>();
+        fieldMapMap = new ConcurrentHashMap<>();
+        publicFieldMapMap = new ConcurrentHashMap<>();
     }
 
     static Storage getInstance() {
@@ -61,13 +75,20 @@ class Storage {
         }
     }
 
-    private static boolean match(Object[] parameters, Class<?>[] parameterTypes) {
+    private static boolean matchParameter(Object parameter, Class<?> parameterType) {
+        if (!parameterType.isPrimitive()) {
+            return parameterType.isInstance(parameter);
+        }
+        return PRIMITIVE_CLASSES.get(parameter.getClass()) == parameterType;
+    }
+
+    private static boolean matchParameters(Object[] parameters, Class<?>[] parameterTypes) {
         int length = parameters.length;
         if (length != parameterTypes.length) {
             return false;
         }
         for (int i = 0; i < length; ++i) {
-            if (parameters[i] != null && !parameterTypes[i].isInstance(parameters[i])) {
+            if (parameters[i] != null && !matchParameter(parameters[i], parameterTypes[i])) {
                 return false;
             }
         }
@@ -87,12 +108,12 @@ class Storage {
         Iterator<Constructor<?>> iterator = constructorList.iterator();
         while (iterator.hasNext()) {
             Constructor<?> constructor = iterator.next();
-            if (match(parameters, constructor.getParameterTypes())) {
+            if (matchParameters(parameters, constructor.getParameterTypes())) {
                 return constructor;
             }
         }
         for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            if (match(parameters, constructor.getParameterTypes())) {
+            if (matchParameters(parameters, constructor.getParameterTypes())) {
                 constructorList.add(constructor); // Maybe add twice.
                 return constructor;
             }
@@ -113,12 +134,12 @@ class Storage {
         Iterator<Constructor<?>> iterator = constructorList.iterator();
         while (iterator.hasNext()) {
             Constructor<?> constructor = iterator.next();
-            if (match(parameters, constructor.getParameterTypes())) {
+            if (matchParameters(parameters, constructor.getParameterTypes())) {
                 return constructor;
             }
         }
         for (Constructor<?> constructor : clazz.getConstructors()) {
-            if (match(parameters, constructor.getParameterTypes())) {
+            if (matchParameters(parameters, constructor.getParameterTypes())) {
                 constructorList.add(constructor); // Maybe add twice.
                 return constructor;
             }
@@ -147,7 +168,10 @@ class Storage {
         Iterator<Method> iterator = methodList.iterator();
         while (iterator.hasNext()) {
             Method method = iterator.next();
-            if (match(parameters, method.getParameterTypes())) {
+            if (!method.getName().equals(methodName)) {
+                continue;
+            }
+            if (matchParameters(parameters, method.getParameterTypes())) {
                 return method;
             }
         }
@@ -156,7 +180,7 @@ class Storage {
                 if (!method.getName().equals(methodName)) {
                     continue;
                 }
-                if (match(parameters, method.getParameterTypes())) {
+                if (matchParameters(parameters, method.getParameterTypes())) {
                     methodList.add(method); // Maybe add twice.
                     return method;
                 }
@@ -187,7 +211,10 @@ class Storage {
         Iterator<Method> iterator = methodList.iterator();
         while (iterator.hasNext()) {
             Method method = iterator.next();
-            if (match(parameters, method.getParameterTypes())) {
+            if (!method.getName().equals(methodName)) {
+                continue;
+            }
+            if (matchParameters(parameters, method.getParameterTypes())) {
                 return method;
             }
         }
@@ -195,7 +222,7 @@ class Storage {
             if (!method.getName().equals(methodName)) {
                 continue;
             }
-            if (match(parameters, method.getParameterTypes())) {
+            if (matchParameters(parameters, method.getParameterTypes())) {
                 methodList.add(method); // Maybe add twice.
                 return method;
             }

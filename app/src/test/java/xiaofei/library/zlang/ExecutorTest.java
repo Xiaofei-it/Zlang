@@ -215,4 +215,50 @@ public class ExecutorTest {
         System.out.println(library.execute("f", new Object[]{1}));
         System.out.println(library.execute("f", new Object[]{1.2}));
     }
+
+    private static class A {
+        int f;
+        public int f2;
+        int f1(int j) {
+            return j + 1;
+        }
+        int f1(int i, int j) {
+            return i + j + 1;
+        }
+        public int f2(int j) {
+            return j + 1;
+        }
+        public int f2(int i, int j) {
+            return i + j + 1;
+        }
+    }
+    private static class B extends A {
+        private B(int g) {
+            this.g = g;
+        }
+        int g;
+        public int g2;
+        int g1(int j) {
+            return j;
+        }
+        int g1(int i, int j) {
+            return i + j;
+        }
+
+        public int g2(int j) {
+            return j;
+        }
+        public int g2(int i, int j) {
+            return i + j;
+        }
+    }
+    @Test
+    public void test10() {
+        Library library = new Library.Builder()
+                .addFunctions("function f() {b = _new_instance(\"" + B.class.getName() + "\", 3); _println(_get_field(b, \"g\")); _set_field(b, \"f\", 100);_println(_get_field(b, \"f\"));_println(_invoke_method(b, \"g1\", 5, 6));_println(_invoke_method(b, \"g1\", 5));_println(\"f1 \" + _invoke_method(b, \"f1\", 5, 6));_println(\"f1 \" + _invoke_method(b, \"f1\", 5));}")
+                .addFunctions("function g() {b = _new_instance(\"" + B.class.getName() + "\", 3); _set_public_field(b, \"f2\", 100);_set_public_field(b, \"g2\", 101);_println(_get_public_field(b, \"g2\"));_println(_get_public_field(b, \"f2\"));_println(_invoke_public_method(b, \"g2\", 5, 6));_println(_invoke_public_method(b, \"g2\", 5));_println(\"f2 \" + _invoke_public_method(b, \"f2\", 5, 6));_println(\"f2 \" + _invoke_public_method(b, \"f2\", 5));}")
+                .build();
+        library.execute("f", new Object[]{});
+        library.execute("g", new Object[]{});
+    }
 }

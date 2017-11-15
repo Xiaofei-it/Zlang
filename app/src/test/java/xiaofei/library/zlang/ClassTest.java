@@ -93,4 +93,17 @@ public class ClassTest {
             }
         }
     }
+
+    @Test
+    public void test5() {
+        System.out.println(int.class.getName());
+        try {
+            Class<?> clazz = Class.forName("int");
+            System.out.println(clazz == int.class);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Object o = 3;
+        System.out.println(o.getClass().getName());
+    }
 }

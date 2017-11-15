@@ -827,7 +827,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 int length = input.length - 2;
                 Object[] parameters = new Object[length];
                 if (length >= 1) {
-                    System.arraycopy(input, 1, parameters, 0, length);
+                    System.arraycopy(input, 2, parameters, 0, length);
                 }
                 Method foundMethod = STORAGE.getPublicMethod(clazz, methodName, parameters);
                 if (foundMethod == null) {
@@ -932,7 +932,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "set_field";
+                return "_set_field";
             }
 
             @Override
@@ -969,7 +969,7 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "set_field";
+                return "_set_public_field";
             }
 
             @Override
