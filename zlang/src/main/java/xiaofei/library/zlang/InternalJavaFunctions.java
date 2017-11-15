@@ -65,6 +65,12 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Reflection.PublicFieldGetter(),
                 new Reflection.FieldSetter(),
                 new Reflection.PublicFieldSetter(),
+                new Reflection.StaticMethodInvocation(),
+                new Reflection.StaticPublicMethodInvocation(),
+                new Reflection.StaticFieldGetter(),
+                new Reflection.StaticPublicFieldGetter(),
+                new Reflection.StaticFieldSetter(),
+                new Reflection.StaticPublicFieldSetter(),
         };
     }
 
@@ -82,6 +88,17 @@ class InternalJavaFunctions extends JavaLibrary {
         }
     }
 
+    private static Class<?> obtainClass2(Object input) {
+        if (input instanceof String) {
+            try {
+                return STORAGE.getClass((String) input);
+            } catch (ClassNotFoundException e) {
+                throw new ZlangRuntimeException(ZlangRuntimeError.CLASS_NOT_FOUND, "" + input);
+            }
+        } else {
+            return input.getClass();
+        }
+    }
 
     private static class ObjectMethods {
         private static class Equal implements JavaFunction {
@@ -942,6 +959,240 @@ class InternalJavaFunctions extends JavaLibrary {
                 }
                 try {
                     field.set(input[0], input[2]);
+                    return null;
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
+                }
+
+            }
+        }
+
+        //TODO
+        private static class StaticMethodInvocation implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_invoke_static_method";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = obtainClass2(input[0]);
+                String methodName = (String) input[1];
+                int length = input.length - 2;
+                Object[] parameters = new Object[length];
+                if (length >= 1) {
+                    System.arraycopy(input, 2, parameters, 0, length);
+                }
+                Method foundMethod = STORAGE.getMethod(clazz, methodName, parameters);
+                if (foundMethod == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD,
+                            "Class: " + input[0] + " Method name: "  + methodName + " Parameter number: " + length);
+                }
+                if (!foundMethod.isAccessible()) {
+                    foundMethod.setAccessible(true);
+                }
+                try {
+                    return foundMethod.invoke(null, parameters);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
+                } catch (InvocationTargetException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
+                }
+            }
+        }
+
+        private static class StaticPublicMethodInvocation implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return true;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_invoke_static_public_method";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = obtainClass2(input[0]);
+                String methodName = (String) input[1];
+                int length = input.length - 2;
+                Object[] parameters = new Object[length];
+                if (length >= 1) {
+                    System.arraycopy(input, 2, parameters, 0, length);
+                }
+                Method foundMethod = STORAGE.getPublicMethod(clazz, methodName, parameters);
+                if (foundMethod == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_METHOD,
+                            "Class: " + input[0] + " Method name: "  + methodName + " Parameter number: " + length);
+                }
+                if (!foundMethod.isAccessible()) {
+                    foundMethod.setAccessible(true);
+                }
+                try {
+                    return foundMethod.invoke(null, parameters);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
+                } catch (InvocationTargetException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.METHOD_INVOCATION_ERROR, foundMethod.toString());
+                }
+            }
+        }
+
+        private static class StaticFieldGetter implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_get_static_field";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = obtainClass2(input[0]);
+                String name = (String) input[1];
+                Field field = STORAGE.getField(clazz, name);
+                if (field == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                            "Class: " + input[0] + " Field name : " + name);
+                }
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                try {
+                    return field.get(null);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
+                }
+            }
+        }
+
+        private static class StaticPublicFieldGetter implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_get_static_public_field";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = obtainClass2(input[0]);
+                String name = (String) input[1];
+                Field field = STORAGE.getPublicField(clazz, name);
+                if (field == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                            "Class: " + input[0] + " Field name : " + name);
+                }
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                try {
+                    return field.get(null);
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_GET_ERROR, field.toString());
+                }
+            }
+        }
+
+        private static class StaticFieldSetter implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 3;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_set_static_field";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = obtainClass2(input[0]);
+                String name = (String) input[1];
+                Field field = STORAGE.getField(clazz, name);
+                if (field == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                            "Class: " + input[0] + " Field name : " + name);
+                }
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                try {
+                    field.set(null, input[2]);
+                    return null;
+                } catch (IllegalAccessException e) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
+                }
+            }
+        }
+
+        private static class StaticPublicFieldSetter implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 3;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_set_static_public_field";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = obtainClass2(input[0]);
+                String name = (String) input[1];
+                Field field = STORAGE.getPublicField(clazz, name);
+                if (field == null) {
+                    throw new ZlangRuntimeException(ZlangRuntimeError.NO_SUCH_FIELD,
+                            "Class: " + input[0] + " Field name : " + name);
+                }
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                try {
+                    field.set(null, input[2]);
                     return null;
                 } catch (IllegalAccessException e) {
                     throw new ZlangRuntimeException(ZlangRuntimeError.FIELD_SET_ERROR, field.toString());
