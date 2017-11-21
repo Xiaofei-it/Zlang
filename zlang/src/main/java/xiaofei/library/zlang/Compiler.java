@@ -127,6 +127,9 @@ class Compiler {
             throw new CompileException(CompileError.INCOMPLETE_PROGRAM,  linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "Program incomplete!");
         }
 		nextChar = program.charAt(pos);
+//        if (nextChar == '\r') {
+//
+//        }
         if (nextChar == '\n') {
             ++lineNumber;
             linePos = 0;

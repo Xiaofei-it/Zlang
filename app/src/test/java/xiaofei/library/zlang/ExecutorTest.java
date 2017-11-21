@@ -215,4 +215,104 @@ public class ExecutorTest {
         System.out.println(library.execute("f", new Object[]{1}));
         System.out.println(library.execute("f", new Object[]{1.2}));
     }
+
+    private static class A {
+        int f;
+        public int f2;
+        int f1(int j) {
+            return j + 1;
+        }
+        int f1(int i, int j) {
+            return i + j + 1;
+        }
+        public int f2(int j) {
+            return j + 1;
+        }
+        public int f2(int i, int j) {
+            return i + j + 1;
+        }
+    }
+    private static class B extends A {
+        private B(int g) {
+            this.g = g;
+        }
+        int g;
+        public int g2;
+        int g1(int j) {
+            return j;
+        }
+        int g1(int i, int j) {
+            return i + j;
+        }
+
+        public int g2(int j) {
+            return j;
+        }
+        public int g2(int i, int j) {
+            return i + j;
+        }
+    }
+    private static class A2 {
+        static int f;
+        public static int f2;
+        static int f1(int j) {
+            return j + 1;
+        }
+        static int f1(int i, int j) {
+            return i + j + 1;
+        }
+        public static int f2(int j) {
+            return j + 1;
+        }
+        public static int f2(int i, int j) {
+            return i + j + 1;
+        }
+    }
+    private static class B2 extends A2 {
+        private B2(int g) {
+            this.g = g;
+        }
+        static int g;
+        public static int g2;
+        static int g1(int j) {
+            return j;
+        }
+        static int g1(int i, int j) {
+            return i + j;
+        }
+
+        public static int g2(int j) {
+            return j;
+        }
+        public static int g2(int i, int j) {
+            return i + j;
+        }
+    }
+    @Test
+    public void test10() {
+        Library library = new Library.Builder()
+                .addFunctions("function f() {b = _new_instance(\"" + B.class.getName() + "\", _new_instance(\"java.lang.Integer\",3)); _println(_get_field(b, \"g\")); _set_field(b, \"f\", 100);_println(_get_field(b, \"f\"));_println(_invoke_method(b, \"g1\", 5, _new_instance(\"java.lang.Integer\",6)));_println(_invoke_method(b, \"g1\", 5));_println(\"f1 \" + _invoke_method(b, \"f1\", 5, 6));_println(\"f1 \" + _invoke_method(b, \"f1\", 5));}")
+                .addFunctions("function g() {b = _new_instance(\"" + B.class.getName() + "\", 3); _set_public_field(b, \"f2\", 100);_set_public_field(b, \"g2\", _new_instance(\"java.lang.Integer\",101));_println(_get_public_field(b, \"g2\"));_println(_get_public_field(b, \"f2\"));_println(_invoke_public_method(b, \"g2\", 5, 6));_println(_invoke_public_method(b, \"g2\", 5));_println(\"f2 \" + _invoke_public_method(b, \"f2\", 5, 6));_println(\"f2 \" + _invoke_public_method(b, \"f2\", 5));}")
+                .build();
+        library.execute("f", new Object[]{});
+        library.execute("g", new Object[]{});
+    }
+    @Test
+    public void test11() {
+        Library library = new Library.Builder()
+                .addFunctions("function f() {b = _new_instance(\"" + B2.class.getName() + "\", _new_instance(\"java.lang.Integer\",3)); _println(_get_static_field(b, \"g\")); _set_static_field(b, \"f\", 100);_println(_get_static_field(b, \"f\"));_println(_invoke_static_method(b, \"g1\", 5, _new_instance(\"java.lang.Integer\",6)));_println(_invoke_static_method(b, \"g1\", 5));_println(\"f1 \" + _invoke_static_method(b, \"f1\", 5, 6));_println(\"f1 \" + _invoke_static_method(b, \"f1\", 5));}")
+                .addFunctions("function g() {b = _new_instance(\"" + B2.class.getName() + "\", 3); _set_public_field(b, \"f2\", 100);_set_static_public_field(b, \"g2\", _new_instance(\"java.lang.Integer\",101));_println(_get_public_field(b, \"g2\"));_println(_get_static_public_field(b, \"f2\"));_println(_invoke_static_public_method(b, \"g2\", 5, 6));_println(_invoke_static_public_method(b, \"g2\", 5));_println(\"f2 \" + _invoke_static_public_method(b, \"f2\", 5, 6));_println(\"f2 \" + _invoke_static_public_method(b, \"f2\", 5));}")
+                .build(); // non-static can be used on static
+        library.execute("f", new Object[]{});
+        library.execute("g", new Object[]{});
+    }
+    @Test
+    public void test12() {
+        Library library = new Library.Builder()
+                .addFunctions("function f() {_println(_get_static_field(\"" + B2.class.getName() + "\", \"g\")); _set_static_field(\"" + B2.class.getName() + "\", \"f\", 100);_println(_get_static_field(\"" + B2.class.getName() + "\", \"f\"));_println(_invoke_static_method(\"" + B2.class.getName() + "\", \"g1\", 5, _new_instance(\"java.lang.Integer\",6)));_println(_invoke_static_method(\"" + B2.class.getName() + "\", \"g1\", 5));_println(\"f1 \" + _invoke_static_method(\"" + B2.class.getName() + "\", \"f1\", 5, 6));_println(\"f1 \" + _invoke_static_method(\"" + B2.class.getName() + "\", \"f1\", 5));}")
+                .addFunctions("function g() {_set_static_public_field(\"" + B2.class.getName() + "\", \"f2\", 100);_set_static_public_field(\"" + B2.class.getName() + "\", \"g2\", _new_instance(\"java.lang.Integer\",101));_println(_get_static_public_field(\"" + B2.class.getName() + "\", \"g2\"));_println(_get_static_public_field(\"" + B2.class.getName() + "\", \"f2\"));_println(_invoke_static_public_method(\"" + B2.class.getName() + "\", \"g2\", 5, 6));_println(_invoke_static_public_method(\"" + B2.class.getName() + "\", \"g2\", 5));_println(\"f2 \" + _invoke_static_public_method(\"" + B2.class.getName() + "\", \"f2\", 5, 6));_println(\"f2 \" + _invoke_static_public_method(\"" + B2.class.getName() + "\", \"f2\", 5));}")
+                .build();
+        library.execute("f", new Object[]{});
+        library.execute("g", new Object[]{});
+    }
 }
