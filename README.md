@@ -93,6 +93,11 @@ They are quite similar, aren't they?
 
 ### Downloading
 
+Before using Zlang at Java runtime, you should compile the binaries or the source code
+of the Zlang interpreter into your project.
+
+0.0.7
+
 ### Building a Zlang library
 
 Build a Zlang library, which contains Zlang functions to call.
@@ -124,9 +129,9 @@ is replaced with a `JavaLibrary.Builder`.
 
 ## Learning more
 
-## Download
+## License
 
-Version
+Copyright (C) 2011-2017 Xiaofei
 
-0.0.7
-
+The binaries and source code of the Zlang Project can be used according to the
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
