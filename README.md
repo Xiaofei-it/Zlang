@@ -1,7 +1,7 @@
 # Zlang
 
-Zlang is a flexible dynamically-typed programming language which run on the JVM and support interaction with Java at
-runtime.
+Zlang is a flexible dynamically-typed programming language which runs on the JVM, and supports access
+to Java objects and interaction with Java at runtime.
 
 ## Features
 
@@ -14,6 +14,8 @@ runtime.
 ## Preview
 
 Zlang is a flexible programming language which run on the JVM. It is easy to learn and use.
+
+### Basic usage
 
 The following is an example which prints "Hello World!" on the console:
 
@@ -54,7 +56,7 @@ function factorial(n) {
 Another example illustrates how to find the maximum number in a two-dimensional array:
 
 ```
-function find_biggest(arr) {
+function max(arr) {
   len1 = _length(arr);
   /* Get the minimum integer. */
   result = _get_static_field("java.lang.Integer", "MIN_VALUE");
@@ -69,6 +71,8 @@ function find_biggest(arr) {
   return result;
 }
 ```
+
+### Java object access
 
 Zlang supports interaction with Java at runtime. The following example prints the current time:
 
@@ -88,6 +92,34 @@ Let's take a look at the corresponding Java statements:
 ```
 
 They are quite similar, aren't they?
+
+Since Zlang supports the access to Java objects, we can also do something interesting.
+
+For instance, we have a Java class named `Foo`:
+
+```
+public class Foo {
+  private int f;
+  public void fun() {
+    Library library = new Library.Builder()
+                        .addFunctions(ZlangFunctions.getFunction())
+                        .build();
+    library.execute("dynamical_fun", new Object[]{this});
+  }
+}
+```
+
+Now we can write any code in `ZlangFunctions` to dynamically control the behavior of `fun` at runtime.
+
+We can, for instance, write the following to modify the value of `f` and print it.
+
+```
+function dynamical_fun(this) {
+  f = _get_field(this, "f");
+  _set_field(this, "f", f + 1);
+  println("The value changes from " + f + " to " + (f + 1));
+}
+```
 
 ## Using Zlang at Java runtime
 
