@@ -122,9 +122,9 @@ The following operators are available:
 |  `==`      | Equal    |
 |  `!=`      | Not equal|
 |  `<`    | Less than|
-|  `&lt;=`   | Less than or equal|
-|  `&gt;`    | Greater than|
-|  `&gt;=`   | Greater than or equal|
+|  `<=`   | Less than or equal|
+|  `>`    | Greater than|
+|  `>=`   | Greater than or equal|
 
 ### Logical operators
 
@@ -132,9 +132,9 @@ Zlang provides three logical operators for boolean expressions:
 
 | Operator | Purpose |
 | :------: | :------:|
-|  &&      | Logical conjunction|
-|  ||      | Logical disjunction|
-|  !       | Logical negation|
+|  `&&`      | Logical conjunction|
+|  `||`      | Logical disjunction|
+|  `!`       | Logical negation|
 
 #### Short-circuiting
 
@@ -181,5 +181,6 @@ The table below lists all Zlang operators in order of precedence:
 |  1       | `[]` `()` `!` | Subscript operator, function call operator/parentheses, logical negation|
 |  2       | `*` `/` | Multiplication, division|
 |  3       | `+` `-` | Addition/unary plus, subtraction/unary minus|
-|  ||      | Logical disjunction|
-|  !       | Logical negation|
+|  4       | `==`  `!=` `<` `<=` `>` `>=` |  Relational operators|
+|  5       | `&&` |  Logical conjunction|
+|  6       | `||` |  Logical disjunction|
