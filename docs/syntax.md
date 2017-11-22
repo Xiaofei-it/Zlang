@@ -16,7 +16,7 @@ Thus, `_fun`, `fun` and `fun1` are legal identifiers, but `1fun` is not.
 Zlang is a flexible dynamically-typed programming language which runs on the JVM, and supports access
 to Java objects and interaction with Java at runtime.
 
-### Numbers
+## Numbers
 
 Zlang supports all kinds of numbers which Java supports.
 However, you can only write `int` and `double` in Zlang.
@@ -28,7 +28,7 @@ aFloat = _new_instance("java.lang.Float", "0.5f");
 aBigInteger = _new_instance("java.math.BigInteger", "890");
 ```
 
-### Characters
+## Characters
 
 A Zlang character is a single character surrounded by single quotes, such as `'a'`, `'1'`, `'@'`, etc.
 
@@ -37,10 +37,91 @@ You can escape special characters, such as `\`, `'` and `"` with the the backsla
 At runtime, a Zlang character is regarded as a Java character,
 and thus can be passed to a Java function as its `char` or `java.lang.Character` parameter.
 
-### Strings
+## Strings
 
-A Zlang string a series of characters surrounded by single quotes.
+A Zlang string a series of characters surrounded by double quotes.
 
 At runtime, a Zlang string is regarded as a Java string,
 and thus can be passed to a Java function as its `java.lang.String` parameter.
 
+## Booleans
+
+A boolean is a special data type that is used to represent truth values: `true` and `false`.
+
+`true` and `false` are the only two primitive boolean values.
+More complex boolean expressions can be represented using logical operators.
+
+
+## Arrays
+
+A Zlang array is regarded as a Java array.
+
+To create a Zlang array:
+
+```
+/* One-dimensional array */
+intArray = _new_array("int", 3);
+
+/* Two-dimensional array */
+integerArray = _new_array("java.lang.Integer", 3, 4);
+
+/* Three-dimensional array, and you can also create an array which has as many dimensions as you want. */
+doubleArray = _new_array("double", 3, 4, 3);
+
+/* Also, you can create an array and initialize it at the same time. */
+stringArray = _array_of("This", "is", "an", "example", ".");
+```
+
+To access an element:
+
+```
+intArray[0] = 3;
+intArray[1] = intArray[0] + 5;
+integerArray[2][3] = 4;
+```
+
+To get the length of an array:
+
+```
+length= _length(intArray);
+```
+
+## Operators
+
+### Arithmetic operators
+
+Zlang supports the usual familiar arithmetic operators.
+
+#### Binary arithmetic operators
+
+| Operator | Purpose |
+| :------: | :------:|
+|  +       | Addition|
+|  -       | Subtraction|
+|  *       | Multiplication|
+|  /       | Division|
+
+#### Unary arithmetic operators
+
+The `+` and `-` operators are also available as unary operators.
+
+```
+a = -1;
+b = +1;
+```
+
+### Relational operators
+
+Relational operators allow comparisons between objects, to know if two objects are the same or different,
+or if one is greater than, less than, or equal to the other.
+
+The following operators are available:
+
+| Operator | Purpose |
+| :------: | :------:|
+|  ==      | Equal    |
+|  !=      | Not equal|
+|  &lt;       | Less than|
+|  &lt;=      | Less than or equal|
+|  &gt;       | Greater than|
+|  &gt;=      | Greater than or equal|
