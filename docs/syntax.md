@@ -39,7 +39,7 @@ and thus can be passed to a Java function as its `char` or `java.lang.Character`
 
 ## Strings
 
-A Zlang string a series of characters surrounded by double quotes.
+A Zlang string is a series of characters surrounded by double quotes.
 
 At runtime, a Zlang string is regarded as a Java string,
 and thus can be passed to a Java function as its `java.lang.String` parameter.
