@@ -96,10 +96,10 @@ Zlang supports the usual familiar arithmetic operators.
 
 | Operator | Purpose |
 | :------: | :------:|
-|  +       | Addition|
-|  -       | Subtraction|
-|  *       | Multiplication|
-|  /       | Division|
+|  `+`       | Addition|
+|  `-`       | Subtraction|
+|  `*`       | Multiplication|
+|  `/`       | Division|
 
 #### Unary arithmetic operators
 
@@ -119,9 +119,67 @@ The following operators are available:
 
 | Operator | Purpose |
 | :------: | :------:|
-|  ==      | Equal    |
-|  !=      | Not equal|
-|  &lt;       | Less than|
-|  &lt;=      | Less than or equal|
-|  &gt;       | Greater than|
-|  &gt;=      | Greater than or equal|
+|  `==`      | Equal    |
+|  `!=`      | Not equal|
+|  `<`    | Less than|
+|  `&lt;=`   | Less than or equal|
+|  `&gt;`    | Greater than|
+|  `&gt;=`   | Greater than or equal|
+
+### Logical operators
+
+Zlang provides three logical operators for boolean expressions:
+
+| Operator | Purpose |
+| :------: | :------:|
+|  &&      | Logical conjunction|
+|  ||      | Logical disjunction|
+|  !       | Logical negation|
+
+#### Short-circuiting
+
+The logical conjunction operator (`&&`) supports short-circuiting:
+If the left operand is false, then the right operand will not be evaluated and the result will be false.
+
+The following tests whether the string is "abc":
+
+```
+function isAbc(string) {
+  return string != null && _equal(string, "abc");
+}
+```
+
+In the above example, `_equal(string, "abc")` can be regarded as `string.equals("abc")` in Java.
+Thus if `string` is `null`, an `NullPointerException` will be thrown when it is evaluated.
+Thanks to the short-circuiting, however, it will not be evaluated at runtime.
+
+Moreover, the logical disjunctin operator (`||`) also supports short-circuiting:
+If the left operand is true, then the right operand will not be evaluated and the result will be true.
+
+### Subscript operator
+
+The subscript operator is used when accessing an element of an array:
+
+```
+intArray = _new_array("int", 4);
+intArray[0] = 0;
+for i = 1 to 3 step 1 {
+  intArray[i] = intArray[i - 1] + 1;
+}
+```
+
+### Function call operator
+
+The function call operator `()` is used to call a function. You should put the parameters in the parentheses.
+
+### Operator precedence
+
+The table below lists all Zlang operators in order of precedence:
+
+| Level    | Operator(s) | Name(s) |
+| :------: | :------:    |:------: |
+|  1       | `[]` `()` `!` | Subscript operator, function call operator/parentheses, logical negation|
+|  2       | `*` `/` | Multiplication, division|
+|  3       | `+` `-` | Addition/unary plus, subtraction/unary minus|
+|  ||      | Logical disjunction|
+|  !       | Logical negation|
