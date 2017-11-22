@@ -183,4 +183,4 @@ The table below lists all Zlang operators in order of precedence:
 |  3       | `+` `-` | Addition/unary plus, subtraction/unary minus|
 |  4       | `==`  `!=` `<` `<=` `>` `>=` |  Relational operators|
 |  5       | `&&` |  Logical conjunction|
-|  6       | `\|\|` |  Logical disjunction|
+|  6       | `||` |  Logical disjunction|
