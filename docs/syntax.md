@@ -10,7 +10,8 @@ up to the first `*/` closing the comment.
 
 ## Identifiers
 
-An identifier starts with a letter or an underscore. However, it cannot start with a digit.
+An identifier starts with a letter or an underscore, followed by a sequence of letters, underscores or digits.
+However, it cannot start with a digit.
 
 Thus, `_fun`, `fun` and `fun1` are legal identifiers, but `1fun` is not.
 Zlang is a flexible dynamically-typed programming language which runs on the JVM, and supports access

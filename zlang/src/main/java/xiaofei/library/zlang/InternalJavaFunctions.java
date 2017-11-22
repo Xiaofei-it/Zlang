@@ -34,7 +34,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 new ObjectMethods.HashCode(),
                 new ObjectMethods.Compare(),
                 new ObjectMethods.Equal(),
-                new ObjectMethods.GetClass(),
+                new ObjectMethods.GetClassName(),
 
                 new Map.ContainsKey(),
                 new Map.ContainsValue(),
@@ -165,7 +165,7 @@ class InternalJavaFunctions extends JavaLibrary {
                 return input[0].hashCode();
             }
         }
-        private static class GetClass implements JavaFunction {
+        private static class GetClassName implements JavaFunction {
             @Override
             public boolean isVarArgs() {
                 return false;
@@ -177,13 +177,14 @@ class InternalJavaFunctions extends JavaLibrary {
 
             @Override
             public String getFunctionName() {
-                return "_get_class";
+                return "_get_class_name";
             }
 
             @Override
             public Object call(Object[] input) {
-                return input[0].getClass();
+                return input[0].getClass().getName();
             }
+            // TODO f(1)
         }
     }
 
