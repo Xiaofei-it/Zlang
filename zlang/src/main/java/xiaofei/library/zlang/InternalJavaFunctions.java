@@ -184,7 +184,7 @@ class InternalJavaFunctions extends JavaLibrary {
             public Object call(Object[] input) {
                 return input[0].getClass().getName();
             }
-            // TODO f(1)
+
         }
     }
 
@@ -250,7 +250,6 @@ class InternalJavaFunctions extends JavaLibrary {
             @Override
             public Object call(Object[] input) {
                 Class<?> clazz =  obtainClass(input[0]);
-                // TODO
                 if (input.length == 2 && input[1] instanceof int[]) {
                     return java.lang.reflect.Array.newInstance(clazz, (int[]) input[1]);
                 }
@@ -968,7 +967,6 @@ class InternalJavaFunctions extends JavaLibrary {
             }
         }
 
-        //TODO
         private static class StaticMethodInvocation implements JavaFunction {
             @Override
             public boolean isVarArgs() {

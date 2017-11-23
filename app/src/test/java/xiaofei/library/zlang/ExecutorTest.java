@@ -318,8 +318,10 @@ public class ExecutorTest {
     @Test
     public void test13() {
         Library library = new Library.Builder()
-                .addFunctions("function f() {a = _new_array(\"int\", 3); _println(a[0]);a = _new_array(\"java.lang.Integer\", 3); _println(a[0]);}")
+                .addFunctions("function f() {a = _new_array(\"int\", 3); _println(a[0]);a = _new_array(\"java.lang.Integer\", 3); _println(a[0]); g(3);}")
+                .addFunctions("function g(a) {_println(_get_class_name(a));}")
                 .build();
         library.execute("f", new Object[]{});
+        library.execute("g", new Object[]{2}); // Always java.lang.Integer
     }
 }
