@@ -24,6 +24,19 @@ class Storage {
             put(Double.class, double.class);
         }
     };
+
+    private static final ConcurrentHashMap<String, Class<?>> PRIMITIVE_CLASS_MAP = new ConcurrentHashMap<String, Class<?>>() {
+        {
+            put("byte", byte.class);
+            put("char", char.class);
+            put("short", short.class);
+            put("int", int.class);
+            put("long", long.class);
+            put("float", float.class);
+            put("double", double.class);
+        }
+    };
+
     private static volatile Storage instance = null;
 
     private ConcurrentHashMap<String, Class<?>> classMap;
@@ -59,8 +72,11 @@ class Storage {
     }
 
     Class<?> getClass(String className) throws ClassNotFoundException {
-        // TODO "int"
-        Class<?> result = classMap.get(className);
+        Class<?> result = PRIMITIVE_CLASS_MAP.get(className);
+        if (result != null) {
+            return result;
+        }
+        result = classMap.get(className);
         if (result != null) {
             return result;
         }
