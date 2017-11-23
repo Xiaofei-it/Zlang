@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Xiaofei on 2017/9/21.
@@ -17,6 +18,18 @@ import java.util.HashSet;
 class InternalJavaFunctions extends JavaLibrary {
 
     private static final Storage STORAGE = Storage.getInstance();
+
+    private static final ConcurrentHashMap<Class<?>, Class<?>> PRIMITIVE_CLASSES = new ConcurrentHashMap<Class<?>, Class<?>>() {
+        {
+            put(byte.class, Byte.class);
+            put(char.class, Character.class);
+            put(short.class, Short.class);
+            put(int.class, Integer.class);
+            put(long.class, Long.class);
+            put(float.class, Float.class);
+            put(double.class, Double.class);
+        }
+    };
 
     static final InternalJavaFunctions INSTANCE = new InternalJavaFunctions();
 
@@ -34,7 +47,18 @@ class InternalJavaFunctions extends JavaLibrary {
                 new ObjectMethods.HashCode(),
                 new ObjectMethods.Compare(),
                 new ObjectMethods.Equal(),
-                new ObjectMethods.GetClassName(),
+
+                new Type.GetClass(),
+                new Type.GetClassName(),
+                new Type.InstanceOf(),
+                new Type.IsBoolean(),
+                new Type.IsChar(),
+                new Type.IsShort(),
+                new Type.IsInt(),
+                new Type.IsLong(),
+                new Type.IsFloat(),
+                new Type.IsDouble(),
+                new Type.IsString(),
 
                 new Map.ContainsKey(),
                 new Map.ContainsValue(),
@@ -165,6 +189,31 @@ class InternalJavaFunctions extends JavaLibrary {
                 return input[0].hashCode();
             }
         }
+
+    }
+
+    private static class Type {
+        private static class GetClass implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_get_class";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0].getClass();
+            }
+
+        }
         private static class GetClassName implements JavaFunction {
             @Override
             public boolean isVarArgs() {
@@ -185,6 +234,199 @@ class InternalJavaFunctions extends JavaLibrary {
                 return input[0].getClass().getName();
             }
 
+        }
+        private static class InstanceOf implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_instance_of";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Class<?> clazz = obtainClass(input[1]);
+                if (clazz.isPrimitive()) {
+                    clazz = PRIMITIVE_CLASSES.get(clazz);
+                }
+                return clazz.isInstance(input[0]);
+            }
+
+        }
+
+        private static class IsBoolean implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_boolean";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0] instanceof Boolean;
+            }
+        }
+
+        private static class IsChar implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_char";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0] instanceof Character;
+            }
+        }
+
+        private static class IsShort implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_short";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0] instanceof Short;
+            }
+        }
+
+        private static class IsInt implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_int";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0] instanceof Integer;
+            }
+        }
+
+        private static class IsLong implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_long";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0] instanceof Long;
+            }
+        }
+
+        private static class IsFloat implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_float";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0] instanceof Float;
+            }
+        }
+
+        private static class IsDouble implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_double";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0] instanceof Double;
+            }
+        }
+
+        private static class IsString implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+            @Override
+            public int getParameterNumber() {
+                return 1;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_is_string";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return input[0] instanceof String;
+            }
         }
     }
 

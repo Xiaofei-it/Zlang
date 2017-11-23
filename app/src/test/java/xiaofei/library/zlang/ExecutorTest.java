@@ -324,4 +324,11 @@ public class ExecutorTest {
         library.execute("f", new Object[]{});
         library.execute("g", new Object[]{2}); // Always java.lang.Integer
     }
+    @Test
+    public void test14() {
+        Library library = new Library.Builder()
+                .addFunctions("function g(a) {_println(_instance_of(a, \"int\"));_println(_instance_of(2, \"int\"));_println(_is_int(2));}")
+                .build();
+        library.execute("g", new Object[]{2}); // Always java.lang.Integer
+    }
 }
