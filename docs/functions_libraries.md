@@ -1,4 +1,4 @@
-# Functions and libraries
+# Functions and Libraries
 
 This chapter covers the functions and libraries of the Zlang programming language.
 
