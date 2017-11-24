@@ -320,3 +320,278 @@ value - value whose presence in the map is to be tested.
 **Returns:**
 
 true if the map maps one or more keys to the specified value.
+
+## Console output
+
+### _print(o)
+
+Prints an object.
+
+**Parameters:**
+
+o - the object, may be a character, an integer, a string, an object, etc.
+
+### _println(o)
+
+Prints an object and then terminate the line.
+
+**Parameters:**
+
+o - the object, may be a character, an integer, a string, an object, etc.
+
+### _println()
+
+Terminates the current line by writing the line separator string.
+
+## Instance creation
+
+### _new_instance(class, ...)
+
+Create and initialize a new instance of the specified class, with the specified initialization parameters.
+
+`_new_instance("java.math.BigInteger", "123")` in Zlang is equivalent to `new BigInteger("123")` in Java.
+
+`_new_instance("com.example.Example", 389, true, temp)` in Zlang is equivalent to `new Example(389, true, temp)` in Java.
+
+**Parameters:**
+
+class - the specified class, may be a `Class` object, or a string which specifies the name of the class.
+
+... - the specified initialization parameters.
+
+**Returns:**
+
+The new instance.
+
+## Method invocation
+
+### _invoke_method(object, method_name, ...)
+
+Invokes the method specified by the method name, on the specified object with the specified parameters.
+
+`_invoke_method(anObject, "fun")` in Zlang is equivalent to `anObject.fun()` in Java.
+
+`_invoke_method(anObject, "fun", 1, "input")` in Zlang is equivalent to `anObject.fun(1, "input")` in Java.
+
+**Parameters:**
+
+object - the specified object.
+
+method_name - the name of the specified method.
+
+... - the specified parameters.
+
+**Returns:**
+
+The return value of the method.
+
+### _invoke_public_method(object, method_name, ...)
+
+Invokes the public member method specified by the method name, on the specified object with the specified parameters.
+
+`_invoke_method(anObject, "fun")` in Zlang is equivalent to `anObject.fun()` in Java.
+
+`_invoke_method(anObject, "fun", 1, "input")` in Zlang is equivalent to `anObject.fun(1, "input")` in Java.
+
+**Parameters:**
+
+object - the specified object.
+
+method_name - the name of the specified method.
+
+... - the specified parameters.
+
+**Returns:**
+
+The return value of the method.
+
+### _invoke_static_method(target, method_name, ...)
+
+Invokes the static method specified by the method name, on the specified target with the specified parameters.
+
+Suppose there is a class `com.example.Example`, `anObject` is an instance of the class, and the class has
+a static method `fun`.
+
+`_invoke_static_method(anObject, "fun", 123)` in Zlang is equivalent to `anObject.fun(123)` in Java.
+
+`_invoke_static_method("com.example.Example", "fun", 123)` in Zlang is equivalent to `Example.fun(123)` in Java.
+
+**Parameters:**
+
+target - the specified target, may be an object, may be a `Class` object, or a string which specifies the name of the class.
+
+method_name - the name of the specified method.
+
+... - the specified parameters.
+
+**Returns:**
+
+The return value of the method.
+
+### _invoke_static_public_method(target, method_name, ...)
+
+Invokes the static public member method specified by the method name, on the specified target with the specified parameters.
+
+Suppose there is a class `com.example.Example`, `anObject` is an instance of the class, and the class has
+a static method `fun`.
+
+`_invoke_static_method(anObject, "fun", 123)` in Zlang is equivalent to `anObject.fun(123)` in Java.
+
+`_invoke_static_method("com.example.Example", "fun", 123)` in Zlang is equivalent to `Example.fun(123)` in Java.
+
+**Parameters:**
+
+target - the specified target, may be an object, may be a `Class` object, or a string which specifies the name of the class.
+
+method_name - the name of the specified method.
+
+... - the specified parameters.
+
+**Returns:**
+
+The return value of the method.
+
+## Field access
+
+### _get_field(object, field_name)
+
+Returns the value of the field specified by the field name on the specified object.
+
+`a = _get_field(anObject, "field")` in Zlang is equivalent to `a = anObject.field` in Java.
+
+**Parameters:**
+
+object - the specified object.
+
+field_name - the name of the specified field.
+
+**Returns:**
+
+The value of the field in the object.
+
+### _get_public_field(object, field_name)
+
+Returns the value of the public member field specified by the field name on the specified object.
+
+`a = _get_field(anObject, "field")` in Zlang is equivalent to `a = anObject.field` in Java.
+
+**Parameters:**
+
+object - the specified object.
+
+field_name - the name of the specified field.
+
+**Returns:**
+
+The value of the public member field in the object.
+
+### _get_static_field(target, field_name)
+
+Returns the value of the static field specified by the field name on the specified target.
+
+`a = _get_field(anObject, "field")` in Zlang is equivalent to `a = anObject.field` in Java.
+Suppose there is a class `com.example.Example`, `anObject` is an instance of the class, and the class has
+a static field `field`.
+
+`a = _get_static_field(anObject, "field")` in Zlang is equivalent to `a = anObject.field` in Java.
+
+`a = _get_static_field("com.example.Example, "field")` in Zlang is equivalent to `a = Example.field` in Java.
+
+**Parameters:**
+
+target - the specified target, may be an object, may be a `Class` object, or a string which specifies the name of the class.
+
+field_name - the name of the specified field.
+
+**Returns:**
+
+The value of the static field in the object.
+
+
+### _get_static_public field(target, field_name)
+
+Returns the value of the static public member field specified by the field name on the specified target.
+
+`a = _get_field(anObject, "field")` in Zlang is equivalent to `a = anObject.field` in Java.
+Suppose there is a class `com.example.Example`, `anObject` is an instance of the class, and the class has
+a static field `field`.
+
+`a = _get_static_field(anObject, "field")` in Zlang is equivalent to `a = anObject.field` in Java.
+
+`a = _get_static_field("com.example.Example, "field")` in Zlang is equivalent to `a = Example.field` in Java.
+
+**Parameters:**
+
+target - the specified target, may be an object, may be a `Class` object, or a string which specifies the name of the class.
+
+field_name - the name of the specified field.
+
+**Returns:**
+
+The value of the static public member field in the object.
+
+### _set_field(object, field_name, value)
+
+Sets the field specified by the field name on the specified object to the specified new value.
+
+`_set_field(anObject, "field", 345)` in Zlang is equivalent to `anObject.field = 345` in Java.
+
+**Parameters:**
+
+object - the specified object whose field should be modified.
+
+field_name - the name of the specified field.
+
+value - the new value for the field of the object being modified
+
+### _set_public_field(object, field_name, value)
+
+Sets the public member field specified by the field name on the specified object to the specified new value.
+
+`_set_field(anObject, "field", 345)` in Zlang is equivalent to `anObject.field = 345` in Java.
+
+**Parameters:**
+
+object - the specified object whose field should be modified.
+
+field_name - the name of the specified field.
+
+value - the new value for the field of the object being modified
+
+### _set_static_field(target, field_name, value)
+
+Sets the static field specified by the field name on the specified target to the specified new value.
+
+Suppose there is a class `com.example.Example`, `anObject` is an instance of the class, and the class has
+a static field `field`.
+
+`_set_static_field(anObject, "field", 34)` in Zlang is equivalent to `anObject.field = 34` in Java.
+
+`_set_static_field("com.example.Example, "field", 34)` in Zlang is equivalent to `Example.field = 34` in Java.
+
+**Parameters:**
+
+target - the specified object whose field should be modified, may be a `Class` object, or a string which specifies the name of the class.
+
+field_name - the name of the specified field.
+
+value - the new value for the field of the object being modified.
+
+### _set_static_public_field(target, field_name, value)
+
+Sets the static public member field specified by the field name on the specified target to the specified new value.
+
+Suppose there is a class `com.example.Example`, `anObject` is an instance of the class, and the class has
+a static field `field`.
+
+`_set_static_field(anObject, "field", 34)` in Zlang is equivalent to `anObject.field = 34` in Java.
+
+`_set_static_field("com.example.Example, "field", 34)` in Zlang is equivalent to `Example.field = 34` in Java.
+
+**Parameters:**
+
+target - the specified object whose field should be modified, may be a `Class` object, or a string which specifies the name of the class.
+
+field_name - the name of the specified field.
+
+value - the new value for the field of the object being modified.

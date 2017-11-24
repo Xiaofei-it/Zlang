@@ -76,9 +76,6 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Collection.Remove(),
                 new Collection.Size(),
 
-                new Reference.SoftRef(),
-                new Reference.WeakRef(),
-
                 new Output.Print(),
                 new Output.Println(),
 
@@ -858,53 +855,6 @@ class InternalJavaFunctions extends JavaLibrary {
                 throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
             }
         }
-    }
-
-    private static class Reference {
-        private static class WeakRef implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_weak_ref";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return new WeakReference<>(input[0]);
-            }
-        }
-
-        private static class SoftRef implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 1;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_soft_ref";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return new SoftReference<>(input[0]);
-            }
-        }
-
     }
 
     private static class Output {
