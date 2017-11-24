@@ -60,18 +60,18 @@ class InternalJavaFunctions extends JavaLibrary {
                 new Type.IsDouble(),
                 new Type.IsString(),
 
+                new Map.NewMap(),
                 new Map.ContainsKey(),
                 new Map.ContainsValue(),
                 new Map.Get(),
                 new Map.Put(),
 
+                new List.NewList(),
                 new List.Get(),
                 new List.Set(),
 
                 new Collection.Add(),
                 new Collection.IsEmpty(),
-                new Collection.NewList(),
-                new Collection.NewMap(),
                 new Collection.NewSet(),
                 new Collection.Remove(),
                 new Collection.Size(),
@@ -509,6 +509,29 @@ class InternalJavaFunctions extends JavaLibrary {
     }
 
     private static class List {
+
+        private static class NewList implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 0;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_new_list";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return new ArrayList<>();
+            }
+        }
+
         private static class Get implements JavaFunction {
             @Override
             public boolean isVarArgs() {
@@ -556,6 +579,29 @@ class InternalJavaFunctions extends JavaLibrary {
     }
 
     private static class Map {
+
+        private static class NewMap implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 0;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_new_map";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                return new HashMap<>();
+            }
+        }
+
         private static class Put implements JavaFunction {
             @Override
             public boolean isVarArgs() {
@@ -672,50 +718,6 @@ class InternalJavaFunctions extends JavaLibrary {
             }
         }
 
-        private static class NewMap implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 0;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_new_map";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return new HashMap<>();
-            }
-        }
-
-        private static class NewList implements JavaFunction {
-            @Override
-            public boolean isVarArgs() {
-                return false;
-            }
-
-            @Override
-            public int getParameterNumber() {
-                return 0;
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "_new_list";
-            }
-
-            @Override
-            public Object call(Object[] input) {
-                return new ArrayList<>();
-            }
-        }
-
         private static class Size implements JavaFunction {
             @Override
             public boolean isVarArgs() {
@@ -824,6 +826,33 @@ class InternalJavaFunctions extends JavaLibrary {
                 Object o = input[0];
                 if (o instanceof java.util.Collection) {
                     return ((java.util.Collection) o).remove(input[1]);
+                }
+                // In case that o is null.
+                throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
+            }
+        }
+
+        private static class Contains implements JavaFunction {
+            @Override
+            public boolean isVarArgs() {
+                return false;
+            }
+
+            @Override
+            public int getParameterNumber() {
+                return 2;
+            }
+
+            @Override
+            public String getFunctionName() {
+                return "_contains";
+            }
+
+            @Override
+            public Object call(Object[] input) {
+                Object o = input[0];
+                if (o instanceof java.util.Collection) {
+                    return ((java.util.Collection) o).contains(input[1]);
                 }
                 // In case that o is null.
                 throw new ZlangRuntimeException(ZlangRuntimeError.ILLEGAL_ARGUMENT, "" + input[0]);
