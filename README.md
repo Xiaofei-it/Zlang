@@ -165,6 +165,8 @@ is replaced with a `JavaLibrary.Builder`.
 
 ## Learning more
 
+Learn the source code of Zlang from [HERE](https://github.com/Xiaofei-it/Zlang).
+
 Learn the syntax of Zlang from [HERE](docs/syntax.md).
 
 Learn the statements of Zlang from [HERE](docs/statements.md).
