@@ -104,7 +104,7 @@ public class Foo {
     Library library = new Library.Builder()
                         .addFunctions(ZlangFunctions.getFunction())
                         .build();
-    library.execute("dynamical_fun", new Object[]{this});
+    library.execute("dynamic_fun", new Object[]{this});
   }
 }
 ```
@@ -114,7 +114,7 @@ Now we can write any code in `ZlangFunctions` to dynamically control the behavio
 We can, for instance, write the following to modify the value of `f` and print it.
 
 ```
-function dynamical_fun(this) {
+function dynamic_fun(this) {
   f = _get_field(this, "f");
   _set_field(this, "f", f + 1);
   println("The value changes from " + f + " to " + (f + 1));
