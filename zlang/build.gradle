@@ -1,5 +1,29 @@
 apply plugin: 'java'
 
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'zlang'
+
+    publishedGroupId = 'xiaofei.library'
+    libraryName = 'Zlang'
+    artifact = 'zlang'
+
+    libraryDescription = 'A flexible dynamically-typed programming language running on the JVM and supporting access to Java objects and interaction with Java at runtime.'
+
+    siteUrl = 'https://github.com/Xiaofei-it/Zlang'
+    gitUrl = 'https://github.com/Xiaofei-it/Zlang.git'
+
+    libraryVersion = '0.1.0'
+
+    developerId = 'Xiaofei-it'
+    developerName = 'Eric Zhao'
+    developerEmail = 'xiaofei.it@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
@@ -7,4 +31,5 @@ dependencies {
 sourceCompatibility = "1.7"
 targetCompatibility = "1.7"
 
-apply from: project.file('gradle-mvn-push.gradle')
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
