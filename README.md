@@ -132,7 +132,11 @@ to execute the instructions of the function.
 Before using Zlang at Java runtime, you should compile the binaries or the source code
 of the Zlang interpreter into your project.
 
-0.0.7
+Add the following to your gradle:
+
+```
+compile 'xiaofei.library:zlang:0.1.0'
+```
 
 ### Building a Zlang library
 
