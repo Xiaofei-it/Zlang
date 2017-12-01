@@ -1,7 +1,7 @@
 # Zlang
 
 [Zlang](https://github.com/Xiaofei-it/Zlang) is a flexible dynamically-typed programming language running on the JVM and
-supporting access to Java objects and interaction with Java at runtime..
+supporting access to Java objects and interaction with Java at runtime.
 
 ## Features
 
