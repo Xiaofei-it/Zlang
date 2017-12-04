@@ -5,8 +5,8 @@ This chapter covers the functions and libraries of the Zlang programming languag
 ## Definitions
 
 A *Zlang function* is a function written in Zlang, containing zero or more Zlang statements.
-A statement within a Zlang function can call Zlang functions (including itself),
-and a Zlang function can also be called by a statement within Zlang functions (including itself).
+A statement within a Zlang function can call Zlang functions (including the Zlang function itself),
+and a Zlang function can also be called by a statement within Zlang functions (including the Zlang function itself).
 
 A *Java function* is a function provided by a Java class implementing the `JavaFunction` interface.
 It can can be called by a statement within Zlang functions.
@@ -121,7 +121,7 @@ function fib(n) {
 }
 ```
 
-## A statement within a Zlang function calls a Java function
+## Call a Java function
 
 Suppose on an Android device, a statement within a Zlang function want to print an Android log.
 
