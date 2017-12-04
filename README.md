@@ -158,7 +158,7 @@ int a = (int) library.execute("f", new Object[]{3});
 System.out.println(a);
 ```
 
-### Dependencies
+### Dependencies in Zlang
 
 When building a Zlang library, you may add another pre-built Zlang library, which contains functions
 for the functions in the new library to call.
