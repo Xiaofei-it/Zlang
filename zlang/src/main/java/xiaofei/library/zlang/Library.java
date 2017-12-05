@@ -207,10 +207,10 @@ public class Library {
 
     static class FunctionSearchResult {
         final Library library;
-        final ArrayList<Code> codes;
+        final CopyOnWriteArrayList<Code> codes;
         FunctionSearchResult(Library library, CopyOnWriteArrayList<Code> codes) {
             this.library = library;
-            this.codes = new ArrayList<>(codes);
+            this.codes = codes;
         }
     }
 }

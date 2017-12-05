@@ -19,7 +19,7 @@
 package xiaofei.library.zlang;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by Xiaofei on 2017/9/21.
@@ -34,7 +34,7 @@ class Executor {
     static Object execute(Library inputLibrary, String functionName, Object[] input) {
         Object[] stack = new Object[1000];
         Library.FunctionSearchResult functionSearchResult = inputLibrary.getFunction(functionName, input.length);
-        ArrayList<Code> codes = functionSearchResult.codes;
+        CopyOnWriteArrayList<Code> codes = functionSearchResult.codes;
         Library library = functionSearchResult.library;
         stack[0] = new Frame(0, -1, null, null, false);
         int length = input.length;
@@ -174,10 +174,10 @@ class Executor {
     private static class Frame {
         final int base;
         final int pos;
-        final ArrayList<Code> codes;
+        final CopyOnWriteArrayList<Code> codes;
         final Library dependency;
         final boolean isFunction;
-        Frame(int base, int pos, ArrayList<Code> codes, Library dependency, boolean isFunction) {
+        Frame(int base, int pos, CopyOnWriteArrayList<Code> codes, Library dependency, boolean isFunction) {
             this.base = base;
             this.pos = pos;
             this.codes = codes;
