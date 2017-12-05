@@ -19,7 +19,9 @@
 package xiaofei.library.zlang;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by Xiaofei on 2017/9/23.
@@ -29,26 +31,28 @@ public class Library {
 
     public static final Object NO_RETURN_VALUE = Executor.NO_RETURN_VALUE;
 
-    private ArrayList<Library> dependencies;
+    private final ConcurrentLinkedQueue<Library> dependencies;
 
-    private ArrayList<JavaLibrary> javaDependencies;
+    private final ConcurrentLinkedQueue<JavaLibrary> javaDependencies;
 
-    private HashMap<String, HashMap<Integer, ArrayList<Code>>> codeMap;
+    private volatile ConcurrentHashMap<String, ConcurrentHashMap<Integer, CopyOnWriteArrayList<Code>>> codeMap;
 
-    private String program;
+    private final String program;
 
-    private Library() {
-        dependencies = null;
-        javaDependencies = null;
-        codeMap = null;
-        program = null;
+    private Library(ConcurrentLinkedQueue<Library> dependencies,
+                    ConcurrentLinkedQueue<JavaLibrary> javaDependencies,
+                    String program) {
+        this.dependencies = dependencies;
+        this.javaDependencies = javaDependencies;
+        this.codeMap = null;
+        this.program = program;
     }
 
     boolean containsFunction(String functionName, int parameterNumber) {
         if (codeMap == null) {
             throw new CompileException(CompileError.NOT_COMPILED, -1, -1, "Library " + this + " is not compiled.");
         }
-        HashMap<Integer, ArrayList<Code>> codes = codeMap.get(functionName);
+        ConcurrentHashMap<Integer, CopyOnWriteArrayList<Code>> codes = codeMap.get(functionName);
         if (codes != null) {
             if (codes.containsKey(parameterNumber)) {
                 return true;
@@ -87,8 +91,8 @@ public class Library {
         if (codeMap == null) {
             throw new CompileException(CompileError.NOT_COMPILED, -1, -1, "Library " + this + " is not compiled.");
         }
-        HashMap<Integer, ArrayList<Code>> codes = codeMap.get(functionName);
-        ArrayList<Code> code = null;
+        ConcurrentHashMap<Integer, CopyOnWriteArrayList<Code>> codes = codeMap.get(functionName);
+        CopyOnWriteArrayList<Code> code = null;
         if (codes != null) {
             code = codes.get(parameterNumber);
         }
@@ -104,13 +108,13 @@ public class Library {
         return null;
     }
 
-    void put(String functionName, int parameterNumber, ArrayList<Code> codesToPut) {
-        HashMap<Integer, ArrayList<Code>> codes = codeMap.get(functionName);
+    synchronized void put(String functionName, int parameterNumber, ArrayList<Code> codesToPut) {
+        ConcurrentHashMap<Integer, CopyOnWriteArrayList<Code>> codes = codeMap.get(functionName);
         if (codes == null) {
-            codes = new HashMap<>();
+            codes = new ConcurrentHashMap<>();
             codeMap.put(functionName, codes);
         }
-        if (codes.put(parameterNumber, codesToPut) != null) {
+        if (codes.put(parameterNumber, new CopyOnWriteArrayList<>(codesToPut)) != null) {
             throw new CompileException(CompileError.FUNCTION_ALREADY_EXIST, -1, -1,
                     "function name: " + functionName + " parameter number: " + parameterNumber);
         }
@@ -120,7 +124,7 @@ public class Library {
         if (codeMap != null) {
             return;
         }
-        codeMap = new HashMap<>();
+        codeMap = new ConcurrentHashMap<>();
         new Compiler(this).compile();
     }
 
@@ -188,14 +192,14 @@ public class Library {
             return this;
         }
 
-        public Library build() {
-            Library library = new Library();
-            library.dependencies = dependencies;
+        public Library build() { // NOT thread-safe
             ArrayList<JavaLibrary> javaLibraries = new ArrayList<>();
             javaLibraries.add(InternalJavaFunctions.INSTANCE);
             javaLibraries.addAll(javaDependencies);
-            library.javaDependencies = javaLibraries;
-            library.program = program.toString();
+            Library library = new Library(
+                    new ConcurrentLinkedQueue<>(dependencies),
+                    new ConcurrentLinkedQueue<>(javaLibraries),
+                    program.toString());
             library.compile();
             return library;
         }
@@ -204,9 +208,9 @@ public class Library {
     static class FunctionSearchResult {
         final Library library;
         final ArrayList<Code> codes;
-        FunctionSearchResult(Library library, ArrayList<Code> codes) {
+        FunctionSearchResult(Library library, CopyOnWriteArrayList<Code> codes) {
             this.library = library;
-            this.codes = codes;
+            this.codes = new ArrayList<>(codes);
         }
     }
 }

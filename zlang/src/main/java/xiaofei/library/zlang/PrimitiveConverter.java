@@ -18,7 +18,7 @@
 
 package xiaofei.library.zlang;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Xiaofei on 2017/9/21.
@@ -26,7 +26,7 @@ import java.util.HashMap;
 
 class PrimitiveConverter {
     ////boolean, byte, char, short, int, long, float, and double
-    private static final HashMap<Class<?>, Integer> PRIMITIVE_INT = new HashMap<Class<?>, Integer>() {
+    private static final ConcurrentHashMap<Class<?>, Integer> PRIMITIVE_INT = new ConcurrentHashMap<Class<?>, Integer>() {
         {
             put(Byte.class, 1);
             put(Character.class, 2);

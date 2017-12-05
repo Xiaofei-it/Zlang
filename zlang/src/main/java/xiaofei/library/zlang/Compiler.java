@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Xiaofei on 2017/9/9.
@@ -41,7 +40,7 @@ import java.util.Set;
 
 class Compiler {
 
-    private static final Set<Character> SPACE_CHARS = new HashSet<Character>() {
+    private static final HashSet<Character> SPACE_CHARS = new HashSet<Character>() {
         {
             add(' ');
             add('\t');

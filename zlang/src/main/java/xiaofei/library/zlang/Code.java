@@ -24,9 +24,9 @@ package xiaofei.library.zlang;
 
 class Code {
 
-    private Fct fct;
+    private final Fct fct;
 
-    private Object operand;
+    private volatile Object operand;
 
     Code(Fct fct, Object operand) {
         this.fct = fct;

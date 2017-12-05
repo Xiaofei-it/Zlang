@@ -19,8 +19,8 @@
 package xiaofei.library.zlang;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Xiaofei on 2017/9/30.
@@ -28,13 +28,13 @@ import java.util.LinkedList;
 
 public abstract class JavaLibrary {
 
-    private final HashMap<String, HashMap<Integer, JavaFunction>> fixedArgsFunctions;
+    private final ConcurrentHashMap<String, ConcurrentHashMap<Integer, JavaFunction>> fixedArgsFunctions;
 
-    private final HashMap<String, LinkedList<JavaFunction>> varArgsFunctions;
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<JavaFunction>> varArgsFunctions;
 
     protected JavaLibrary() {
-        fixedArgsFunctions = new HashMap<>();
-        varArgsFunctions = new HashMap<>();
+        fixedArgsFunctions = new ConcurrentHashMap<>();
+        varArgsFunctions = new ConcurrentHashMap<>();
         JavaFunction[] functions = onProvideJavaFunctions();
         for (JavaFunction function : functions) {
             addFunction(function);
@@ -46,16 +46,16 @@ public abstract class JavaLibrary {
     private void addFunction(JavaFunction function) {
         String name = function.getFunctionName();
         if (function.isVarArgs()) {
-            LinkedList<JavaFunction> list = varArgsFunctions.get(name);
+            ConcurrentLinkedQueue<JavaFunction> list = varArgsFunctions.get(name);
             if (list == null) {
-                list = new LinkedList<>();
+                list = new ConcurrentLinkedQueue<>();
                 varArgsFunctions.put(name, list);
             }
             list.add(function);
         } else {
-            HashMap<Integer, JavaFunction> map = fixedArgsFunctions.get(name);
+            ConcurrentHashMap<Integer, JavaFunction> map = fixedArgsFunctions.get(name);
             if (map == null) {
-                map = new HashMap<>();
+                map = new ConcurrentHashMap<>();
                 fixedArgsFunctions.put(name, map);
             }
             map.put(function.getParameterNumber(), function);
@@ -63,14 +63,14 @@ public abstract class JavaLibrary {
     }
 
     final JavaFunction get(String functionName, int parameterNumber) {
-        HashMap<Integer, JavaFunction> functionMap = fixedArgsFunctions.get(functionName);
+        ConcurrentHashMap<Integer, JavaFunction> functionMap = fixedArgsFunctions.get(functionName);
         if (functionMap != null) {
             JavaFunction function = functionMap.get(parameterNumber);
             if (function != null) {
                 return function;
             }
         }
-        LinkedList<JavaFunction> functionList = varArgsFunctions.get(functionName);
+        ConcurrentLinkedQueue<JavaFunction> functionList = varArgsFunctions.get(functionName);
         if (functionList == null) {
             return null;
         }
