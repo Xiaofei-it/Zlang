@@ -11,6 +11,10 @@ supporting access to Java objects and interaction with Java at runtime.
 
 3. Supports interaction with Java at runtime and thus provides an classloader-free alternative for hotfix.
 
+4. To support functional programming in the future.
+
+5. To support object-oriented programming in the future.
+
 ## Preview
 
 Zlang is a flexible programming language which run on the JVM. It is easy to learn and use.
@@ -135,7 +139,7 @@ of the Zlang interpreter into your project.
 Add the following to your gradle:
 
 ```
-compile 'xiaofei.library:zlang:0.1.0'
+compile 'xiaofei.library:zlang:0.2.0'
 ```
 
 ### Building a Zlang library
