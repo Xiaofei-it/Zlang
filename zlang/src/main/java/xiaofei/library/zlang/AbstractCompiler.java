@@ -38,9 +38,9 @@ import java.util.Map;
  * term = factor * factor
  */
 
-class Compiler {
+class AbstractCompiler {
 
-    private static final HashSet<Character> SPACE_CHARS = new HashSet<Character>() {
+    protected static final HashSet<Character> SPACE_CHARS = new HashSet<Character>() {
         {
             add(' ');
             add('\t');
@@ -48,7 +48,7 @@ class Compiler {
         }
     };
 
-    private static final HashMap<String, Symbol> RESERVED_WORDS_SYMBOLS = new HashMap<String, Symbol>() {
+    protected static final HashMap<String, Symbol> RESERVED_WORDS_SYMBOLS = new HashMap<String, Symbol>() {
         {
             put("END", Symbol.END);
             put("function", Symbol.FUNCTION);
@@ -64,7 +64,7 @@ class Compiler {
         }
     };
 
-    private static final HashSet<Symbol> LEADING_WORDS = new HashSet<Symbol>() {
+    protected static final HashSet<Symbol> LEADING_WORDS = new HashSet<Symbol>() {
         {
             add(Symbol.IF);
             add(Symbol.WHILE);
@@ -75,7 +75,7 @@ class Compiler {
         }
     };
 
-    private static final HashMap<Character, Symbol> CHARACTER_SYMBOLS = new HashMap<Character, Symbol>() {
+    protected static final HashMap<Character, Symbol> CHARACTER_SYMBOLS = new HashMap<Character, Symbol>() {
         {
             put(',', Symbol.COMMA);
             put(';', Symbol.SEMICOLON);
@@ -92,41 +92,41 @@ class Compiler {
         }
     };
 
-    private int pos = -1;
+    protected int pos = -1;
 
-    private int lineNumber = 1;
+    protected int lineNumber = 1;
 
-    private int linePos = 0;
+    protected int linePos = 0;
 
 //    private int previousPos;
 
-    private int previousLinePos;
+    protected int previousLinePos;
 
-    private char nextChar = ' '; // After read, this points to the next char to read.
+    protected char nextChar = ' '; // After read, this points to the next char to read.
 
-    private Symbol nextSymbol; // After read, this points to the next symbol to read.
+    protected Symbol nextSymbol; // After read, this points to the next symbol to read.
 
-    private Object nextObject;
+    protected Object nextObject;
 
-    private int offset;
+    protected int offset;
 
-    private int codeIndex; // The last code index
+    protected int codeIndex; // The last code index
 
-    private LabelRecorder continueRecorder = new LabelRecorder();
+    protected LabelRecorder continueRecorder = new LabelRecorder();
 
-    private LabelRecorder breakRecorder = new LabelRecorder();
+    protected LabelRecorder breakRecorder = new LabelRecorder();
 
-    private Map<String, Integer> symbolTable = new HashMap<>();
+    protected Map<String, Integer> symbolTable = new HashMap<>();
 
-    private LinkedList<FunctionWrapper> neededFunctions = new LinkedList<>();
+    protected LinkedList<FunctionWrapper> neededFunctions = new LinkedList<>();
 
-    private Library library;
+    protected Library library;
 
-    private String program;
+    protected String program;
 
-    private ArrayList<Code> codes;
+    protected ArrayList<Code> codes;
 
-    Compiler(Library library) {
+    protected AbstractCompiler(Library library) {
         program = library.getProgram();
         this.library = library;
     }
@@ -155,7 +155,7 @@ class Compiler {
         }
     }
 
-    private void moveToNextSymbol() {
+    protected void moveToNextSymbol() {
         while (SPACE_CHARS.contains(nextChar)) {
             moveToNextChar();
         }
@@ -300,12 +300,12 @@ class Compiler {
         }
     }
 
-    private void generateCode(Fct fct, Object operand) {
+    protected void generateCode(Fct fct, Object operand) {
         codes.add(new Code(fct, operand));
         ++codeIndex;
     }
 
-    private void modifyCodeOperand(int codeIndex, Object operand) {
+    protected void modifyCodeOperand(int codeIndex, Object operand) {
         codes.get(codeIndex).setOperand(operand);
     }
 
@@ -486,7 +486,7 @@ class Compiler {
         }
     }
 
-    private void statement(boolean inLoop) {
+    protected void statement(boolean inLoop) {
         if (nextSymbol == Symbol.SEMICOLON) {
             moveToNextSymbol();
         } else if (nextSymbol == Symbol.ID) {
@@ -685,78 +685,7 @@ class Compiler {
         }
     }
 
-    private void function() {
-		breakRecorder.init();
-        continueRecorder.init();
-        symbolTable.clear();
-        codes = new ArrayList<>();
-        codeIndex = -1;
-        if (nextSymbol == null) {
-            moveToNextSymbol();
-        }
-        if (nextSymbol != Symbol.FUNCTION) {
-            throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "function");
-        }
-        moveToNextSymbol();
-        if (nextSymbol != Symbol.ID) {
-            throw new CompileException(CompileError.ILLEGAL_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "" + nextSymbol);
-        }
-        String functionName = (String) nextObject;
-        moveToNextSymbol();
-        int parameterNumber = 0;
-        offset = -1;
-        if (nextSymbol == Symbol.LEFT_PARENTHESIS) {
-            moveToNextSymbol();
-        } else {
-            throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "(");
-        }
-        while (nextSymbol != Symbol.RIGHT_PARENTHESIS) {
-            if (nextSymbol != Symbol.ID) {
-                throw new CompileException(CompileError.ILLEGAL_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "" + nextSymbol);
-            }
-            String id = (String) nextObject;
-            ++parameterNumber;
-            ++offset;
-            symbolTable.put(id, offset);
-            moveToNextSymbol();
-            if (nextSymbol != Symbol.RIGHT_PARENTHESIS && nextSymbol != Symbol.COMMA) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, ") or ,");
-            }
-            if (nextSymbol == Symbol.COMMA) {
-                moveToNextSymbol();
-            }
-        }
-        moveToNextSymbol();
-        generateCode(Fct.INT, 0);
-        int tmp = codeIndex;
-        statement(false);
-        generateCode(Fct.VOID_RETURN, 0);
-        modifyCodeOperand(tmp, offset + 1);
-        library.put(functionName, parameterNumber, codes);
-    }
-
-    void compile() {
-        program += "END ";
-        do {
-            function();
-            if (nextSymbol == Symbol.END) {
-                break;
-            } else if (nextSymbol != Symbol.FUNCTION) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos, "function");
-            }
-        } while (true);
-//        library.compileDependencies();
-        for (FunctionWrapper functionWrapper : neededFunctions) {
-            if (!library.containsFunction(functionWrapper.functionName, functionWrapper.parameterNumber)) {
-                throw new CompileException(
-                        CompileError.UNDEFINED_FUNCTION, linePos == 0 ? lineNumber - 1 : lineNumber, previousLinePos,
-                        "Function name: " + functionWrapper.functionName
-                                + " Parameter number: " + functionWrapper.parameterNumber);
-            }
-        }
-    }
-
-    private static class FunctionWrapper {
+    protected static class FunctionWrapper {
         final String functionName;
         final int parameterNumber;
         FunctionWrapper(String functionName, int parameterNumber) {
@@ -764,8 +693,8 @@ class Compiler {
             this.parameterNumber = parameterNumber;
         }
     }
-    private class LabelRecorder {
-        private HashMap<Integer, HashSet<Integer>> labels;
+    protected class LabelRecorder {
+        HashMap<Integer, HashSet<Integer>> labels;
         private int currentLabel;
         void init() {
             currentLabel = 0;
