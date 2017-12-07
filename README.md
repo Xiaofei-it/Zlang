@@ -181,7 +181,7 @@ is replaced with a `JavaLibrary.Builder`.
 
 [Funtions and libraries of Zlang](docs/functions_libraries.md).
 
-[intenal Java function provided by Zlang](docs/internal_java_functions.md).
+[Intenal Java function provided by Zlang](docs/internal_java_functions.md).
 
 ## License
 
