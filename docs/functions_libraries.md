@@ -210,7 +210,7 @@ function test2(a) {
 
 The name of the custom Java functions should start with letters.
 Any Java functions whose name starts with the underscore is regarded as the internal Java functions,
-provided by Zlang. See [InternalJavaFunction(internal_java_functions.md) for the internal Java functions
+provided by Zlang. See [InternalJavaFunction](internal_java_functions.md) for the internal Java functions
 provided by Zlang.
 
 ## Build a Java library at Java runtime
