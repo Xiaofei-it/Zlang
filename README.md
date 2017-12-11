@@ -139,7 +139,7 @@ of the Zlang interpreter into your project.
 Add the following to your gradle:
 
 ```
-compile 'xiaofei.library:zlang:0.2.0'
+compile 'xiaofei.library:zlang:1.0.0'
 ```
 
 ### Building a Zlang library

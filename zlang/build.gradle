@@ -13,7 +13,7 @@ ext {
     siteUrl = 'https://github.com/Xiaofei-it/Zlang'
     gitUrl = 'https://github.com/Xiaofei-it/Zlang.git'
 
-    libraryVersion = '0.2.0'
+    libraryVersion = '1.0.0'
 
     developerId = 'Xiaofei-it'
     developerName = 'Eric Zhao'
