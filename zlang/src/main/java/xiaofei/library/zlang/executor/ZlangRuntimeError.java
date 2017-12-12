@@ -16,32 +16,22 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.executor;
 
 /**
- * Created by Xiaofei on 2017/9/9.
+ * Created by Xiaofei on 2017/10/10.
  */
 
-class Code {
-
-    private final Fct fct;
-
-    private volatile Object operand;
-
-    Code(Fct fct, Object operand) {
-        this.fct = fct;
-        this.operand = operand;
-    }
-
-    Fct getOpr() {
-        return fct;
-    }
-
-    Object getOperand() {
-        return operand;
-    }
-
-    void setOperand(Object operand) {
-        this.operand = operand;
-    }
+public enum ZlangRuntimeError {
+    UNKNOWN_OPERATION,
+    NO_RETURN_VALUE,
+    ILLEGAL_ARGUMENT,
+    CLASS_NOT_FOUND,
+    NO_SUCH_FIELD,
+    NO_SUCH_METHOD,
+    NO_SUCH_CONSTRUCTOR,
+    FIELD_SET_ERROR,
+    FIELD_GET_ERROR,
+    METHOD_INVOCATION_ERROR,
+    NEW_INSTANCE_ERROR,
 }

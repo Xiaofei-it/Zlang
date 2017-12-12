@@ -16,20 +16,19 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.compiler;
 
 /**
  * Created by Xiaofei on 2017/9/13.
  */
 
-public enum CompileError {
-    NOT_COMPILED,
-    INCOMPLETE_PROGRAM,
-    ILLEGAL_SYMBOL,
-    UNINITIALIZED_VARIABLE,
-    UNINITIALIZED_ARRAY,
-    UNDEFINED_FUNCTION,
-    MISSING_SYMBOL,
-    SEMANTIC_ERROR,
-    FUNCTION_ALREADY_EXIST,
+public class CompileException extends RuntimeException {
+
+    public CompileException(CompileError error, BaseCompiler.ReadState readState, String info) {
+        super("" + error + ": " + info + " At " + (readState.linePos == 0 ? readState.lineNumber - 1 : readState.lineNumber) + ":" + (readState.previousLinePos - 1));
+    }
+
+    public CompileException(CompileError error, String info) {
+        super("" + error + ": " + info);
+    }
 }

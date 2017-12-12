@@ -16,14 +16,14 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.opr;
 
 /**
  * Created by Xiaofei on 2017/9/21.
  */
 
-class OprAdapterFactory {
-    static OprAdapter getInstance(Opr opr) {
+public class OprAdapterFactory {
+    public static OprAdapter getInstance(Opr opr) {
         switch (opr) {
             case NEGATIVE:
                 return NegativeAdapter.INSTANCE;

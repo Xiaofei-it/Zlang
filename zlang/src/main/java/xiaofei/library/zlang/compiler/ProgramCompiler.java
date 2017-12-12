@@ -16,7 +16,10 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.compiler;
+
+import xiaofei.library.zlang.Library;
+import xiaofei.library.zlang.internal.Symbol;
 
 /**
  * Created by Xiaofei on 2017/12/12.

@@ -16,10 +16,8 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.internal;
 
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -29,11 +27,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import xiaofei.library.zlang.JavaFunction;
+import xiaofei.library.zlang.JavaLibrary;
+import xiaofei.library.zlang.executor.ZlangRuntimeError;
+import xiaofei.library.zlang.executor.ZlangRuntimeException;
+
 /**
  * Created by Xiaofei on 2017/9/21.
  */
 
-class InternalJavaFunctions extends JavaLibrary {
+public class InternalJavaFunctions extends JavaLibrary {
 
     private static final Storage STORAGE = Storage.getInstance();
 
@@ -49,7 +52,7 @@ class InternalJavaFunctions extends JavaLibrary {
         }
     };
 
-    static final InternalJavaFunctions INSTANCE = new InternalJavaFunctions();
+    public static final InternalJavaFunctions INSTANCE = new InternalJavaFunctions();
 
     private InternalJavaFunctions() {
     }

@@ -16,13 +16,18 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.compiler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+
+import xiaofei.library.zlang.internal.Code;
+import xiaofei.library.zlang.internal.Fct;
+import xiaofei.library.zlang.opr.Opr;
+import xiaofei.library.zlang.internal.Symbol;
 
 /**
  * Created by Xiaofei on 2017/9/9.
@@ -38,7 +43,7 @@ import java.util.Map;
  * term = factor * factor
  */
 
-abstract class BaseCompiler {
+public abstract class BaseCompiler {
 
     private static final HashSet<Character> SPACE_CHARS = new HashSet<Character>() {
         {
@@ -803,7 +808,7 @@ abstract class BaseCompiler {
         }
     }
 
-    protected static class ReadState {
+    static class ReadState {
         int pos = -1;
 
         int lineNumber = 1;

@@ -16,25 +16,64 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.internal;
 
 /**
- * Created by Xiaofei on 2017/9/13.
+ * Created by Xiaofei on 2017/9/28.
  */
 
-enum Opr {
-    NEGATIVE,
+public enum Symbol {
+    END,
+    FUNCTION,
+    IF,
+    ELSE,
+    WHILE,
+    FOR,
+    TO,
+    STEP,
+    BREAK,
+    CONTINUE,
+    RETURN,
+
+    CLASS,
+    STATIC,
+    SUPER,
+    OUTER,
+    THIS,
+
+    ID,
+    BOOLEAN,
+    NULL,
+    NUMBER,
+    CHARACTER,
+    STRING,
+    LESS_EQUAL,
+    LESS,
+    GREATER_EQUAL,
+    GREATER,
+    EQUAL,
+    ASSIGN,
+    NOT_EQUAL,
+    NOT,
+    AND,
+    OR,
+    COMMA,
+    SEMICOLON,
+    LEFT_PARENTHESIS,
+    RIGHT_PARENTHESIS,
+    LEFT_BRACE, // {
+    RIGHT_BRACE,
+    LEFT_BRACKET, // [
+    RIGHT_BRACKET,
+
+    COLON,
+    ARROW, // ->
+
     PLUS,
     MINUS,
     TIMES,
     DIVIDE,
-    EQUAL,
-    NOT_EQUAL,
-    LESS,
-    LESS_EQUAL,
-    GREATER_EQUAL,
-    GREATER,
-    NOT,
-    AND,
-    OR,
+
+    INSTANCE_OF,
+    MOD,
 }

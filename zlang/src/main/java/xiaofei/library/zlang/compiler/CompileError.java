@@ -16,19 +16,20 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.compiler;
 
 /**
- * Created by Xiaofei on 2017/10/10.
+ * Created by Xiaofei on 2017/9/13.
  */
 
-public class ZlangRuntimeException extends RuntimeException {
-
-    ZlangRuntimeException(ZlangRuntimeError error, String info) {
-        super("Runtime error: " + error + " Info: " + info);
-    }
-
-    ZlangRuntimeException(ZlangRuntimeError error) {
-        this(error, null);
-    }
+public enum CompileError {
+    NOT_COMPILED,
+    INCOMPLETE_PROGRAM,
+    ILLEGAL_SYMBOL,
+    UNINITIALIZED_VARIABLE,
+    UNINITIALIZED_ARRAY,
+    UNDEFINED_FUNCTION,
+    MISSING_SYMBOL,
+    SEMANTIC_ERROR,
+    FUNCTION_ALREADY_EXIST,
 }

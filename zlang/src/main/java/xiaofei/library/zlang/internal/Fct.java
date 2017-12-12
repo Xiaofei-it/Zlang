@@ -16,13 +16,13 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.internal;
 
 /**
  * Created by Xiaofei on 2017/9/13.
  */
 
-enum Fct {
+public enum Fct {
     LIT,
     LOD,
     ALOD,

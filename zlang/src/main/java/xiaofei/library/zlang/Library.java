@@ -23,6 +23,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import xiaofei.library.zlang.compiler.CompileError;
+import xiaofei.library.zlang.compiler.CompileException;
+import xiaofei.library.zlang.internal.Code;
+
 /**
  * Created by Xiaofei on 2017/9/23.
  */
@@ -71,7 +75,7 @@ public class Library {
         return false;
     }
 
-    JavaFunction getJavaFunction(String functionName, int parameter) {
+    public JavaFunction getJavaFunction(String functionName, int parameter) {
         for (JavaLibrary javaLibrary : javaDependencies) {
             JavaFunction function = javaLibrary.get(functionName, parameter);
             if (function != null) {
@@ -87,7 +91,7 @@ public class Library {
         return null;
     }
 
-    FunctionSearchResult getFunction(String functionName, int parameterNumber) {
+    public FunctionSearchResult getFunction(String functionName, int parameterNumber) {
         if (codeMap == null) {
             throw new CompileException(CompileError.NOT_COMPILED, "Library " + this + " is not compiled.");
         }
@@ -108,7 +112,7 @@ public class Library {
         return null;
     }
 
-    synchronized void put(String functionName, int parameterNumber, ArrayList<Code> codesToPut) {
+    public synchronized void put(String functionName, int parameterNumber, ArrayList<Code> codesToPut) {
         ConcurrentHashMap<Integer, CopyOnWriteArrayList<Code>> codes = codeMap.get(functionName);
         if (codes == null) {
             codes = new ConcurrentHashMap<>();
@@ -125,14 +129,14 @@ public class Library {
             return;
         }
         codeMap = new ConcurrentHashMap<>();
-        new BaseCompiler(this).compile();
+//        new BaseCompiler(this).compile();
     }
 
     public Object execute(String functionName, Object[] input) {
         return Executor.execute(this, functionName, input);
     }
 
-    String getProgram() {
+    public String getProgram() {
         return program;
     }
 //
@@ -205,9 +209,9 @@ public class Library {
         }
     }
 
-    static class FunctionSearchResult {
-        final Library library;
-        final CopyOnWriteArrayList<Code> codes;
+    public static class FunctionSearchResult {
+        public final Library library;
+        public final CopyOnWriteArrayList<Code> codes;
         FunctionSearchResult(Library library, CopyOnWriteArrayList<Code> codes) {
             this.library = library;
             this.codes = codes;

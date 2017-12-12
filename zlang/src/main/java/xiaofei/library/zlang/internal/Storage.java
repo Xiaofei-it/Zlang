@@ -16,7 +16,7 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.internal;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

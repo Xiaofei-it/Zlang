@@ -16,7 +16,7 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.opr;
 
 import java.util.concurrent.ConcurrentHashMap;
 

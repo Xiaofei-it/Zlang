@@ -16,19 +16,32 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.internal;
 
 /**
- * Created by Xiaofei on 2017/9/13.
+ * Created by Xiaofei on 2017/9/9.
  */
 
-public class CompileException extends RuntimeException {
+public class Code {
 
-    CompileException(CompileError error, BaseCompiler.ReadState readState, String info) {
-        super("" + error + ": " + info + " At " + (readState.linePos == 0 ? readState.lineNumber - 1 : readState.lineNumber) + ":" + (readState.previousLinePos - 1));
+    private final Fct fct;
+
+    private volatile Object operand;
+
+    public Code(Fct fct, Object operand) {
+        this.fct = fct;
+        this.operand = operand;
     }
 
-    CompileException(CompileError error, String info) {
-        super("" + error + ": " + info);
+    public Fct getOpr() {
+        return fct;
+    }
+
+    public Object getOperand() {
+        return operand;
+    }
+
+    public void setOperand(Object operand) {
+        this.operand = operand;
     }
 }

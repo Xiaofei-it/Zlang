@@ -16,16 +16,25 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.opr;
 
 /**
- * Created by Xiaofei on 2017/9/21.
+ * Created by Xiaofei on 2017/9/13.
  */
 
-interface OprAdapter {
-
-    int getOperandNumber();
-
-    Object operate(Object[] stack, int start);
-
+public enum Opr {
+    NEGATIVE,
+    PLUS,
+    MINUS,
+    TIMES,
+    DIVIDE,
+    EQUAL,
+    NOT_EQUAL,
+    LESS,
+    LESS_EQUAL,
+    GREATER_EQUAL,
+    GREATER,
+    NOT,
+    AND,
+    OR,
 }

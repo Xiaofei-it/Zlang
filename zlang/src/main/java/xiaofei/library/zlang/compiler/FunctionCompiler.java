@@ -16,9 +16,12 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.compiler;
 
 import java.util.ArrayList;
+
+import xiaofei.library.zlang.internal.Fct;
+import xiaofei.library.zlang.internal.Symbol;
 
 /**
  * Created by Xiaofei on 2017/12/12.

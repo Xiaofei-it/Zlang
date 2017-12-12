@@ -16,50 +16,16 @@
  *
  */
 
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.opr;
 
 /**
- * Created by Xiaofei on 2017/9/28.
+ * Created by Xiaofei on 2017/9/21.
  */
 
-enum Symbol {
-    END,
-    FUNCTION,
-    IF,
-    ELSE,
-    WHILE,
-    FOR,
-    TO,
-    STEP,
-    BREAK,
-    CONTINUE,
-    RETURN,
-    ID,
-    BOOLEAN,
-    NULL,
-    NUMBER,
-    CHARACTER,
-    STRING,
-    LESS_EQUAL,
-    LESS,
-    GREATER_EQUAL,
-    GREATER,
-    EQUAL,
-    ASSIGN,
-    NOT_EQUAL,
-    NOT,
-    AND,
-    OR,
-    COMMA,
-    SEMICOLON,
-    LEFT_PARENTHESIS,
-    RIGHT_PARENTHESIS,
-    LEFT_BRACE, // {
-    RIGHT_BRACE,
-    LEFT_BRACKET, // [
-    RIGHT_BRACKET,
-    PLUS,
-    MINUS,
-    TIMES,
-    DIVIDE,
+public interface OprAdapter {
+
+    int getOperandNumber();
+
+    Object operate(Object[] stack, int start);
+
 }

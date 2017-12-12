@@ -1,4 +1,4 @@
-package xiaofei.library.zlang;
+package xiaofei.library.zlang.internal;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Created by Xiaofei on 2017/12/12.
  */
 
-class ZlangClass {
+public class ZlangClass {
 
     private static final ConcurrentHashMap<String, ZlangClass> ZLANG_CLASSES = new ConcurrentHashMap<>();
 
@@ -77,7 +77,7 @@ class ZlangClass {
         }
     }
 
-    int getVariableOffset(String name) {
+    public int getVariableOffset(String name) {
         // -1 if undefined.
         Integer offset = variableOffsets.get(name);
         if (offset != null) {
@@ -110,7 +110,7 @@ class ZlangClass {
         } else if (superClass != null) {
             superClass.setStaticVariable(name, value);
         } else {
-            throw new ZlangRuntimeException(null);
+            throw new xiaofei.library.zlang.executor.ZlangRuntimeException(null);
         }
     }
 
@@ -121,7 +121,7 @@ class ZlangClass {
         } else if (superClass != null) {
             return superClass.getStaticVariable(name);
         } else {
-            throw new ZlangRuntimeException(null);
+            throw new xiaofei.library.zlang.executor.ZlangRuntimeException(null);
         }
     }
 
