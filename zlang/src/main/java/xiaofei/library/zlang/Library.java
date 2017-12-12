@@ -50,7 +50,7 @@ public class Library {
 
     boolean containsFunction(String functionName, int parameterNumber) {
         if (codeMap == null) {
-            throw new CompileException(CompileError.NOT_COMPILED, -1, -1, "Library " + this + " is not compiled.");
+            throw new CompileException(CompileError.NOT_COMPILED, "Library " + this + " is not compiled.");
         }
         ConcurrentHashMap<Integer, CopyOnWriteArrayList<Code>> codes = codeMap.get(functionName);
         if (codes != null) {
@@ -89,7 +89,7 @@ public class Library {
 
     FunctionSearchResult getFunction(String functionName, int parameterNumber) {
         if (codeMap == null) {
-            throw new CompileException(CompileError.NOT_COMPILED, -1, -1, "Library " + this + " is not compiled.");
+            throw new CompileException(CompileError.NOT_COMPILED, "Library " + this + " is not compiled.");
         }
         ConcurrentHashMap<Integer, CopyOnWriteArrayList<Code>> codes = codeMap.get(functionName);
         CopyOnWriteArrayList<Code> code = null;
@@ -115,7 +115,7 @@ public class Library {
             codeMap.put(functionName, codes);
         }
         if (codes.put(parameterNumber, new CopyOnWriteArrayList<>(codesToPut)) != null) {
-            throw new CompileException(CompileError.FUNCTION_ALREADY_EXIST, -1, -1,
+            throw new CompileException(CompileError.FUNCTION_ALREADY_EXIST,
                     "function name: " + functionName + " parameter number: " + parameterNumber);
         }
     }
