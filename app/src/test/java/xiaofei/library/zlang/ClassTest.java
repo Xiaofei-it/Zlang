@@ -18,6 +18,8 @@
 
 package xiaofei.library.zlang;
 
+import android.os.SystemClock;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -124,4 +126,17 @@ public class ClassTest {
         Object o = 3;
         System.out.println(o.getClass().getName());
     }
+
+    @Test
+    public void test6() {
+        System.out.println("A1.v1 " + A1.v1);
+        System.out.println("A2.v1 " + A2.v1);
+        A1.v1 = 100;
+        System.out.println("A1.v1 " + A1.v1);
+        System.out.println("A2.v1 " + A2.v1);
+        A2.v1 = 200;
+        System.out.println("A1.v1 " + A1.v1);
+        System.out.println("A2.v1 " + A2.v1);
+    }
 }
+

@@ -18,8 +18,6 @@
 
 package xiaofei.library.zlang;
 
-import java.util.ArrayList;
-
 /**
  * Created by Xiaofei on 2017/12/12.
  *
@@ -27,57 +25,36 @@ import java.util.ArrayList;
 
 class ProgramCompiler extends BaseCompiler {
 
-    ProgramCompiler(String program, ReadState readState) {
-        super(program, readState);
+    private final Library library;
+
+    ProgramCompiler(Library library) {
+        super(library.getProgram() + " END ", new ReadState());
+        this.library = library;
     }
 
     CompileResult compile() {
-		breakRecorder.init();
-        continueRecorder.init();
-        symbolTable.clear();
-        codes = new ArrayList<>();
-        readState.codeIndex = -1;
         if (readState.nextSymbol == null) {
             moveToNextSymbol();
         }
-        if (readState.nextSymbol != Symbol.FUNCTION) {
-            throw new CompileException(CompileError.MISSING_SYMBOL, readState, "function");
-        }
-        moveToNextSymbol();
-        if (readState.nextSymbol != Symbol.ID) {
-            throw new CompileException(CompileError.ILLEGAL_SYMBOL, readState, "" + readState.nextSymbol);
-        }
-        String functionName = (String) readState.nextObject;
-        moveToNextSymbol();
-        int parameterNumber = 0;
-        readState.offset = -1;
-        if (readState.nextSymbol == Symbol.LEFT_PARENTHESIS) {
-            moveToNextSymbol();
-        } else {
-            throw new CompileException(CompileError.MISSING_SYMBOL, readState, "(");
-        }
-        while (readState.nextSymbol != Symbol.RIGHT_PARENTHESIS) {
-            if (readState.nextSymbol != Symbol.ID) {
-                throw new CompileException(CompileError.ILLEGAL_SYMBOL, readState, "" + readState.nextSymbol);
+        do {
+            if (readState.nextSymbol == Symbol.FUNCTION) {
+                CompileResult compileResult = new FunctionCompiler(this).compile();
+                library.put(compileResult.functionName, compileResult.parameterNumber, compileResult.codes);
+            } else if (readState.nextSymbol == Symbol.END) {
+                break;
+            } else {
+                throw new CompileException(CompileError.MISSING_SYMBOL, readState, "function");
             }
-            String id = (String) readState.nextObject;
-            ++parameterNumber;
-            ++readState.offset;
-            symbolTable.put(id, readState.offset);
-            moveToNextSymbol();
-            if (readState.nextSymbol != Symbol.RIGHT_PARENTHESIS && readState.nextSymbol != Symbol.COMMA) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, readState, ") or ,");
-            }
-            if (readState.nextSymbol == Symbol.COMMA) {
-                moveToNextSymbol();
-            }
-        }
-        moveToNextSymbol();
-        generateCode(Fct.INT, 0);
-        int tmp = readState.codeIndex;
-        statement(false);
-        generateCode(Fct.VOID_RETURN, 0);
-        modifyCodeOperand(tmp, readState.offset + 1);
-        return new CompileResult(functionName, parameterNumber, codes, readState);
+        } while (true);
+//        for (FunctionWrapper functionWrapper : neededFunctions) {
+//            if (!library.containsFunction(functionWrapper.functionName, functionWrapper.parameterNumber)) {
+//                throw new CompileException(
+//                        CompileError.UNDEFINED_FUNCTION, readState,
+//                        "Function name: " + functionWrapper.functionName
+//                                + " Parameter number: " + functionWrapper.parameterNumber);
+//            }
+//        }
+//        return new CompileResult(functionName, parameterNumber, codes, readState);
+        return null;
     }
 }

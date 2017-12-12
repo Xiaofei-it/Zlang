@@ -36,7 +36,7 @@ class ClassCompiler extends BaseCompiler {
         continueRecorder.init();
         symbolTable.clear();
         codes = new ArrayList<>();
-        readState.codeIndex = -1;
+        codeIndex = -1;
         if (readState.nextSymbol == null) {
             moveToNextSymbol();
         }
@@ -50,7 +50,7 @@ class ClassCompiler extends BaseCompiler {
         String functionName = (String) readState.nextObject;
         moveToNextSymbol();
         int parameterNumber = 0;
-        readState.offset = -1;
+        offset = -1;
         if (readState.nextSymbol == Symbol.LEFT_PARENTHESIS) {
             moveToNextSymbol();
         } else {
@@ -62,8 +62,8 @@ class ClassCompiler extends BaseCompiler {
             }
             String id = (String) readState.nextObject;
             ++parameterNumber;
-            ++readState.offset;
-            symbolTable.put(id, readState.offset);
+            ++offset;
+            symbolTable.put(id, offset);
             moveToNextSymbol();
             if (readState.nextSymbol != Symbol.RIGHT_PARENTHESIS && readState.nextSymbol != Symbol.COMMA) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, readState, ") or ,");
@@ -74,10 +74,10 @@ class ClassCompiler extends BaseCompiler {
         }
         moveToNextSymbol();
         generateCode(Fct.INT, 0);
-        int tmp = readState.codeIndex;
+        int tmp = codeIndex;
         statement(false);
         generateCode(Fct.VOID_RETURN, 0);
-        modifyCodeOperand(tmp, readState.offset + 1);
-        return new CompileResult(functionName, parameterNumber, codes, readState);
+        modifyCodeOperand(tmp, offset + 1);
+        return new CompileResult(functionName, parameterNumber, codes);
     }
 }

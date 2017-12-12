@@ -94,6 +94,10 @@ abstract class BaseCompiler {
 
     protected final ReadState readState;
 
+    protected int offset;
+
+    protected int codeIndex; // The last code index
+
     protected LabelRecorder continueRecorder = new LabelRecorder();
 
     protected LabelRecorder breakRecorder = new LabelRecorder();
@@ -116,6 +120,11 @@ abstract class BaseCompiler {
     protected BaseCompiler(String program, ReadState readState) {
         this.program = program;
         this.readState = readState;
+    }
+
+    protected BaseCompiler(BaseCompiler baseCompiler) {
+        this.program = baseCompiler.program;
+        this.readState = baseCompiler.readState;
     }
 
     private static boolean isAlpha(char ch) {
@@ -289,7 +298,7 @@ abstract class BaseCompiler {
 
     protected void generateCode(Fct fct, Object operand) {
         codes.add(new Code(fct, operand));
-        ++readState.codeIndex;
+        ++codeIndex;
     }
 
     protected void modifyCodeOperand(int codeIndex, Object operand) {
@@ -448,13 +457,13 @@ abstract class BaseCompiler {
         comparisonExpression();
         while (readState.nextSymbol == Symbol.AND) {
             generateCode(Fct.JPF_SC, 0);
-            codeIndexes.add(readState.codeIndex);
+            codeIndexes.add(codeIndex);
             moveToNextSymbol();
             comparisonExpression();
             generateCode(Fct.OPR, Opr.AND);
         }
         for (int index : codeIndexes) {
-            modifyCodeOperand(index, readState.codeIndex + 1);
+            modifyCodeOperand(index, codeIndex + 1);
         }
     }
 
@@ -463,13 +472,13 @@ abstract class BaseCompiler {
         conjunctionExpression();
         while (readState.nextSymbol == Symbol.OR) {
             generateCode(Fct.JPT_SC, 0);
-            codeIndexes.add(readState.codeIndex);
+            codeIndexes.add(codeIndex);
             moveToNextSymbol();
             conjunctionExpression();
             generateCode(Fct.OPR, Opr.OR);
         }
         for (int index : codeIndexes) {
-            modifyCodeOperand(index, readState.codeIndex + 1);
+            modifyCodeOperand(index, codeIndex + 1);
         }
     }
 
@@ -482,7 +491,7 @@ abstract class BaseCompiler {
             if (readState.nextSymbol == Symbol.ASSIGN) {
                 Integer address = symbolTable.get(id);
                 if (address == null) {
-                    symbolTable.put(id, address = ++readState.offset);
+                    symbolTable.put(id, address = ++offset);
                 }
                 moveToNextSymbol();
                 disjunctionExpression();
@@ -534,16 +543,16 @@ abstract class BaseCompiler {
             }
             moveToNextSymbol();
             generateCode(Fct.JPF, 0); // if false then jump.
-            int tmp = readState.codeIndex;
+            int tmp = codeIndex;
             statement(inLoop);
-            modifyCodeOperand(tmp, readState.codeIndex + 1);
+            modifyCodeOperand(tmp, codeIndex + 1);
             if (readState.nextSymbol == Symbol.ELSE) {
-                modifyCodeOperand(tmp, readState.codeIndex + 2);
+                modifyCodeOperand(tmp, codeIndex + 2);
                 generateCode(Fct.JMP, 0);
-                tmp = readState.codeIndex;
+                tmp = codeIndex;
                 moveToNextSymbol();
                 statement(inLoop);
-                modifyCodeOperand(tmp, readState.codeIndex + 1);
+                modifyCodeOperand(tmp, codeIndex + 1);
             }
         } else if (readState.nextSymbol == Symbol.LEFT_BRACE) {
             moveToNextSymbol();
@@ -564,7 +573,7 @@ abstract class BaseCompiler {
             }
             moveToNextSymbol();
         } else if (readState.nextSymbol == Symbol.WHILE) {
-            int tmp1 = readState.codeIndex + 1;
+            int tmp1 = codeIndex + 1;
             moveToNextSymbol();
             if (readState.nextSymbol != Symbol.LEFT_PARENTHESIS) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, readState, "(");
@@ -576,13 +585,13 @@ abstract class BaseCompiler {
             }
             moveToNextSymbol();
             generateCode(Fct.JPF, 0); //false then jump
-            int tmp2 = readState.codeIndex;
+            int tmp2 = codeIndex;
             breakRecorder.createNewLabel();
             continueRecorder.createNewLabel();
             statement(true);
             generateCode(Fct.JMP, tmp1);
-            modifyCodeOperand(tmp2, readState.codeIndex + 1);
-            breakRecorder.modifyCode(readState.codeIndex + 1);
+            modifyCodeOperand(tmp2, codeIndex + 1);
+            breakRecorder.modifyCode(codeIndex + 1);
             breakRecorder.deleteCurrentLabel();
             continueRecorder.modifyCode(tmp1);
             continueRecorder.deleteCurrentLabel();
@@ -591,7 +600,7 @@ abstract class BaseCompiler {
                 throw new CompileException(CompileError.SEMANTIC_ERROR, readState, "'break' appears outside a loop.");
             }
             generateCode(Fct.JMP, 0);
-            breakRecorder.addCode(readState.codeIndex);
+            breakRecorder.addCode(codeIndex);
             moveToNextSymbol();
             if (readState.nextSymbol != Symbol.SEMICOLON) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, readState, ";");
@@ -605,7 +614,7 @@ abstract class BaseCompiler {
             String id = (String) readState.nextObject;
             Integer address = symbolTable.get(id);
             if (address == null) {
-                symbolTable.put(id, address = ++readState.offset);
+                symbolTable.put(id, address = ++offset);
             }
             moveToNextSymbol();
             if (readState.nextSymbol != Symbol.ASSIGN) {
@@ -614,7 +623,7 @@ abstract class BaseCompiler {
             moveToNextSymbol();
             numericExpression();
             generateCode(Fct.STO, address);
-            int tmp1 = readState.codeIndex + 1;
+            int tmp1 = codeIndex + 1;
             if (readState.nextSymbol != Symbol.TO) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, readState, "to");
             }
@@ -623,10 +632,10 @@ abstract class BaseCompiler {
             generateCode(Fct.LOD, address);
             generateCode(Fct.OPR, Opr.GREATER_EQUAL);
             generateCode(Fct.JPF, 0);
-            int tmp2 = readState.codeIndex;
+            int tmp2 = codeIndex;
             generateCode(Fct.JMP, 0);
-            int tmp3 = readState.codeIndex;
-            int tmp4 = readState.codeIndex + 1;
+            int tmp3 = codeIndex;
+            int tmp4 = codeIndex + 1;
             if (readState.nextSymbol != Symbol.STEP) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, readState, "step");
             }
@@ -636,13 +645,13 @@ abstract class BaseCompiler {
             generateCode(Fct.OPR, Opr.PLUS);
             generateCode(Fct.STO, address);
             generateCode(Fct.JMP, tmp1);
-            modifyCodeOperand(tmp3, readState.codeIndex + 1);
+            modifyCodeOperand(tmp3, codeIndex + 1);
             breakRecorder.createNewLabel();
             continueRecorder.createNewLabel();
             statement(true);
             generateCode(Fct.JMP, tmp4);
-            modifyCodeOperand(tmp2, readState.codeIndex + 1);
-            breakRecorder.modifyCode(readState.codeIndex + 1);
+            modifyCodeOperand(tmp2, codeIndex + 1);
+            breakRecorder.modifyCode(codeIndex + 1);
             breakRecorder.deleteCurrentLabel();
             continueRecorder.modifyCode(tmp4);
             continueRecorder.deleteCurrentLabel();
@@ -651,7 +660,7 @@ abstract class BaseCompiler {
                 throw new CompileException(CompileError.SEMANTIC_ERROR, readState, "'continue' appears outside a loop.");
             }
             generateCode(Fct.JMP, 0);
-            continueRecorder.addCode(readState.codeIndex);
+            continueRecorder.addCode(codeIndex);
             moveToNextSymbol();
             if (readState.nextSymbol != Symbol.SEMICOLON) {
                 throw new CompileException(CompileError.MISSING_SYMBOL, readState, ";");
@@ -749,12 +758,12 @@ abstract class BaseCompiler {
         final String functionName;
         final int parameterNumber;
         final ArrayList<Code> codes;
-        final ReadState readState;
-        CompileResult(String functionName, int parameterNumber, ArrayList<Code> codes, ReadState readState) {
+//        final ReadState readState;
+        CompileResult(String functionName, int parameterNumber, ArrayList<Code> codes) {
             this.functionName = functionName;
             this.parameterNumber = parameterNumber;
             this.codes = codes;
-            this.readState = readState;
+//            this.readState = readState;
         }
     }
 
@@ -808,9 +817,5 @@ abstract class BaseCompiler {
         Symbol nextSymbol; // After read, this points to the next symbol to read.
 
         Object nextObject;
-
-        int offset;
-
-        int codeIndex; // The last code index
     }
 }
