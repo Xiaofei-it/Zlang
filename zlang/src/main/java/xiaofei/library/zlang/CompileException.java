@@ -24,7 +24,7 @@ package xiaofei.library.zlang;
 
 public class CompileException extends RuntimeException {
 
-    CompileException(CompileError error, Compiler.ReadState readState, String info) {
+    CompileException(CompileError error, BaseCompiler.ReadState readState, String info) {
         super("" + error + ": " + info + " At " + (readState.linePos == 0 ? readState.lineNumber - 1 : readState.lineNumber) + ":" + (readState.previousLinePos - 1));
     }
 

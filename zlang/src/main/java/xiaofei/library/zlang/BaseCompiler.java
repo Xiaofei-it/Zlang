@@ -38,7 +38,7 @@ import java.util.Map;
  * term = factor * factor
  */
 
-class Compiler {
+abstract class BaseCompiler {
 
     private static final HashSet<Character> SPACE_CHARS = new HashSet<Character>() {
         {
@@ -92,25 +92,30 @@ class Compiler {
         }
     };
 
-    private ReadState readState = new ReadState();
+    protected final ReadState readState;
 
-    private LabelRecorder continueRecorder = new LabelRecorder();
+    protected LabelRecorder continueRecorder = new LabelRecorder();
 
-    private LabelRecorder breakRecorder = new LabelRecorder();
+    protected LabelRecorder breakRecorder = new LabelRecorder();
 
-    private Map<String, Integer> symbolTable = new HashMap<>();
+    protected Map<String, Integer> symbolTable = new HashMap<>();
 
     private LinkedList<FunctionWrapper> neededFunctions = new LinkedList<>();
 
-    private final Library library;
+//    private final Library library;
 
-    private String program;
+    private final String program;
 
-    private ArrayList<Code> codes;
+    protected ArrayList<Code> codes;
 
-    Compiler(Library library) {
-        program = library.getProgram();
-        this.library = library;
+//    BaseCompiler(Library library) {
+//        program = library.getProgram();
+////        this.library = library;
+//    }
+
+    protected BaseCompiler(String program, ReadState readState) {
+        this.program = program;
+        this.readState = readState;
     }
 
     private static boolean isAlpha(char ch) {
@@ -137,7 +142,7 @@ class Compiler {
         }
     }
 
-    private void moveToNextSymbol() {
+    protected void moveToNextSymbol() {
         while (SPACE_CHARS.contains(readState.nextChar)) {
             moveToNextChar();
         }
@@ -282,12 +287,12 @@ class Compiler {
         }
     }
 
-    private void generateCode(Fct fct, Object operand) {
+    protected void generateCode(Fct fct, Object operand) {
         codes.add(new Code(fct, operand));
         ++readState.codeIndex;
     }
 
-    private void modifyCodeOperand(int codeIndex, Object operand) {
+    protected void modifyCodeOperand(int codeIndex, Object operand) {
         codes.get(codeIndex).setOperand(operand);
     }
 
@@ -468,7 +473,7 @@ class Compiler {
         }
     }
 
-    private void statement(boolean inLoop) {
+    protected void statement(boolean inLoop) {
         if (readState.nextSymbol == Symbol.SEMICOLON) {
             moveToNextSymbol();
         } else if (readState.nextSymbol == Symbol.ID) {
@@ -667,74 +672,89 @@ class Compiler {
         }
     }
 
-    private void function() {
-		breakRecorder.init();
-        continueRecorder.init();
-        symbolTable.clear();
-        codes = new ArrayList<>();
-        readState.codeIndex = -1;
-        if (readState.nextSymbol == null) {
-            moveToNextSymbol();
-        }
-        if (readState.nextSymbol != Symbol.FUNCTION) {
-            throw new CompileException(CompileError.MISSING_SYMBOL, readState, "function");
-        }
-        moveToNextSymbol();
-        if (readState.nextSymbol != Symbol.ID) {
-            throw new CompileException(CompileError.ILLEGAL_SYMBOL, readState, "" + readState.nextSymbol);
-        }
-        String functionName = (String) readState.nextObject;
-        moveToNextSymbol();
-        int parameterNumber = 0;
-        readState.offset = -1;
-        if (readState.nextSymbol == Symbol.LEFT_PARENTHESIS) {
-            moveToNextSymbol();
-        } else {
-            throw new CompileException(CompileError.MISSING_SYMBOL, readState, "(");
-        }
-        while (readState.nextSymbol != Symbol.RIGHT_PARENTHESIS) {
-            if (readState.nextSymbol != Symbol.ID) {
-                throw new CompileException(CompileError.ILLEGAL_SYMBOL, readState, "" + readState.nextSymbol);
-            }
-            String id = (String) readState.nextObject;
-            ++parameterNumber;
-            ++readState.offset;
-            symbolTable.put(id, readState.offset);
-            moveToNextSymbol();
-            if (readState.nextSymbol != Symbol.RIGHT_PARENTHESIS && readState.nextSymbol != Symbol.COMMA) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, readState, ") or ,");
-            }
-            if (readState.nextSymbol == Symbol.COMMA) {
-                moveToNextSymbol();
-            }
-        }
-        moveToNextSymbol();
-        generateCode(Fct.INT, 0);
-        int tmp = readState.codeIndex;
-        statement(false);
-        generateCode(Fct.VOID_RETURN, 0);
-        modifyCodeOperand(tmp, readState.offset + 1);
-        library.put(functionName, parameterNumber, codes);
-    }
+//    private void function() {
+//		breakRecorder.init();
+//        continueRecorder.init();
+//        symbolTable.clear();
+//        codes = new ArrayList<>();
+//        readState.codeIndex = -1;
+//        if (readState.nextSymbol == null) {
+//            moveToNextSymbol();
+//        }
+//        if (readState.nextSymbol != Symbol.FUNCTION) {
+//            throw new CompileException(CompileError.MISSING_SYMBOL, readState, "function");
+//        }
+//        moveToNextSymbol();
+//        if (readState.nextSymbol != Symbol.ID) {
+//            throw new CompileException(CompileError.ILLEGAL_SYMBOL, readState, "" + readState.nextSymbol);
+//        }
+//        String functionName = (String) readState.nextObject;
+//        moveToNextSymbol();
+//        int parameterNumber = 0;
+//        readState.offset = -1;
+//        if (readState.nextSymbol == Symbol.LEFT_PARENTHESIS) {
+//            moveToNextSymbol();
+//        } else {
+//            throw new CompileException(CompileError.MISSING_SYMBOL, readState, "(");
+//        }
+//        while (readState.nextSymbol != Symbol.RIGHT_PARENTHESIS) {
+//            if (readState.nextSymbol != Symbol.ID) {
+//                throw new CompileException(CompileError.ILLEGAL_SYMBOL, readState, "" + readState.nextSymbol);
+//            }
+//            String id = (String) readState.nextObject;
+//            ++parameterNumber;
+//            ++readState.offset;
+//            symbolTable.put(id, readState.offset);
+//            moveToNextSymbol();
+//            if (readState.nextSymbol != Symbol.RIGHT_PARENTHESIS && readState.nextSymbol != Symbol.COMMA) {
+//                throw new CompileException(CompileError.MISSING_SYMBOL, readState, ") or ,");
+//            }
+//            if (readState.nextSymbol == Symbol.COMMA) {
+//                moveToNextSymbol();
+//            }
+//        }
+//        moveToNextSymbol();
+//        generateCode(Fct.INT, 0);
+//        int tmp = readState.codeIndex;
+//        statement(false);
+//        generateCode(Fct.VOID_RETURN, 0);
+//        modifyCodeOperand(tmp, readState.offset + 1);
+//        library.put(functionName, parameterNumber, codes);
+//    }
 
-    void compile() {
-        program += "END ";
-        do {
-            function();
-            if (readState.nextSymbol == Symbol.END) {
-                break;
-            } else if (readState.nextSymbol != Symbol.FUNCTION) {
-                throw new CompileException(CompileError.MISSING_SYMBOL, readState, "function");
-            }
-        } while (true);
-//        library.compileDependencies();
-        for (FunctionWrapper functionWrapper : neededFunctions) {
-            if (!library.containsFunction(functionWrapper.functionName, functionWrapper.parameterNumber)) {
-                throw new CompileException(
-                        CompileError.UNDEFINED_FUNCTION, readState,
-                        "Function name: " + functionWrapper.functionName
-                                + " Parameter number: " + functionWrapper.parameterNumber);
-            }
+//    void compile() {
+//        program += "END ";
+//        do {
+//            function();
+//            if (readState.nextSymbol == Symbol.END) {
+//                break;
+//            } else if (readState.nextSymbol != Symbol.FUNCTION) {
+//                throw new CompileException(CompileError.MISSING_SYMBOL, readState, "function");
+//            }
+//        } while (true);
+////        library.compileDependencies();
+//        for (FunctionWrapper functionWrapper : neededFunctions) {
+//            if (!library.containsFunction(functionWrapper.functionName, functionWrapper.parameterNumber)) {
+//                throw new CompileException(
+//                        CompileError.UNDEFINED_FUNCTION, readState,
+//                        "Function name: " + functionWrapper.functionName
+//                                + " Parameter number: " + functionWrapper.parameterNumber);
+//            }
+//        }
+//    }
+
+    abstract CompileResult compile();
+
+    protected static class CompileResult {
+        final String functionName;
+        final int parameterNumber;
+        final ArrayList<Code> codes;
+        final ReadState readState;
+        CompileResult(String functionName, int parameterNumber, ArrayList<Code> codes, ReadState readState) {
+            this.functionName = functionName;
+            this.parameterNumber = parameterNumber;
+            this.codes = codes;
+            this.readState = readState;
         }
     }
 
@@ -746,7 +766,7 @@ class Compiler {
             this.parameterNumber = parameterNumber;
         }
     }
-    private class LabelRecorder {
+    protected class LabelRecorder {
         private HashMap<Integer, HashSet<Integer>> labels;
         private int currentLabel;
         void init() {

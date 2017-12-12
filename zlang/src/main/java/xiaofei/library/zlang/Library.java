@@ -125,7 +125,7 @@ public class Library {
             return;
         }
         codeMap = new ConcurrentHashMap<>();
-        new Compiler(this).compile();
+        new BaseCompiler(this).compile();
     }
 
     public Object execute(String functionName, Object[] input) {
